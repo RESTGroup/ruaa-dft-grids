@@ -1,9 +1,8 @@
 # Test targets
 
 `cargo test` builds one integration-test binary per top-level `*.rs` file.
-The published crate ships no external-program reference probes; the targets
-below check mathematical invariants, the built-in PySCF construction and the
-public API.
+The targets below check mathematical invariants, the built-in PySCF
+construction and the public API; they are offline and self-contained.
 
 | target | covers |
 |---|---|
@@ -16,10 +15,13 @@ public API.
 | [`partition_deriv.rs`](partition_deriv.rs) | analytic Becke/SSF/SS/LKO/mBecke gradients and Hessians against finite differences |
 | [`partition_weights.rs`](partition_weights.rs) | partition weights at caller-supplied points and the table path |
 | [`post_prune.rs`](post_prune.rs) | `PostPrune` policies and retained/pruned splits |
+| [`preset_api.rs`](preset_api.rs) | PySCF level 3 as a `GridPreset`, the committed preset file, inheritance order, topology errors |
 | [`user_workflows.rs`](user_workflows.rs) | consumer workflows: PySCF and data-driven presets -> `MolecularGrid`, weight derivatives, sorting, prune/sort/derive; mirrors [`../docs/user-guide.md`](../docs/user-guide.md) |
 
 The unit tests in `src/` cover the radial kernels, angular rules, pruning
 schemes, partition kernels and the preset data model.
 
-Cross-code reference probes are maintained outside the published package; the
-crate's tests are offline and self-contained.
+The optional PySCF cross-check in
+[`../examples/presets/check_against_pyscf.py`](../examples/presets/check_against_pyscf.py)
+is a manual developer check: it is not a `cargo test` target, it needs PySCF,
+and CI does not run it.

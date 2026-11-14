@@ -8,6 +8,7 @@
 //! | Page | Audience |
 //! |---|---|
 //! | [`guide`] | consumers: geometry -> grid -> derivatives -> ordering |
+//! | [`presets`] | consumers: the built-in PySCF level, preset files, PySCF check |
 //! | [`algorithms`] | radial/angular rules, pruning and partition formulas |
 //! | [`partition_derivatives`] | tensor layouts and the streaming derivative API |
 //! | [`becke_derivatives`] | derivation of the classic Becke gradient and Hessian |
@@ -29,6 +30,10 @@ pub mod becke_derivatives {
 
 pub mod guide {
     #![doc = include_str!("../../docs/user-guide.md")]
+}
+
+pub mod presets {
+    #![doc = include_str!("../../docs/presets.md")]
 }
 
 pub mod partition_derivatives {

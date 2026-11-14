@@ -8,6 +8,10 @@
 //! combine it with a [`crate::partition::PartitionConfig`] to form a
 //! [`crate::grid::GridSpec`].
 //!
+//! The [presets page](crate::doc::presets) has a complete worked example:
+//! PySCF's level-3 preset as data, its full TOML file and a PySCF
+//! cross-check.
+//!
 //! # Why data-driven
 //!
 //! The radial node map is a mathematical construction, but the shell counts,

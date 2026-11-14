@@ -174,6 +174,9 @@ $$
 so its point set depends on the full geometry.  Such a preset produces a
 geometry-dependent `GridPlan`; rebuild the plan when the geometry moves.
 
+The [presets page](crate::doc::presets) builds the complete PySCF level-3
+preset as data, ships its TOML file and checks it against PySCF.
+
 ### 2.3 Combining topology and partition
 
 The partition is part of the full `GridSpec`, not of the topology:

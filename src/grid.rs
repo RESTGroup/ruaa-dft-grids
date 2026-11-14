@@ -64,7 +64,10 @@ use crate::radial::Radial;
 ///
 /// This is the built-in preset for PySCF's open-source `Grids.level`
 /// construction. It is a convenience source of an atomic topology; the
-/// partition is supplied by the enclosing [`GridSpec`].
+/// partition is supplied by the enclosing [`GridSpec`].  The
+/// [presets page](crate::doc::presets) lists the level tables, opens the same
+/// topology as a [`crate::preset::GridPreset`] and shows the PySCF
+/// cross-check.
 ///
 /// Build with [`PyscfGridSpecBuilder`].
 ///

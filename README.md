@@ -124,6 +124,12 @@ element entries inherit the remaining fields (an element wins over its range,
 which wins over `default`).  This keeps a full-periodic-table preset compact:
 one block per row plus the per-element radial scale.
 
+The [presets page](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/presets/index.html)
+opens PySCF's level 3 preset as data, ships the complete
+`examples/presets/pyscf-level-3.toml` (seven ranges, 103 element entries), and
+includes an optional `examples/presets/check_against_pyscf.py` cross-check
+against PySCF's own grid construction.
+
 `AngularLayout` covers a fixed rule, a pruning policy, an explicit per-shell
 size list, a uniform product rule and a per-shell adaptive-phi product rule.  A construction outside those layouts can be
 assembled as an `AtomicGrid` and passed to
@@ -233,6 +239,7 @@ The long-form documentation is part of the API docs:
 | Page | Content |
 |---|---|
 | [User guide](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/guide/index.html) | consumer path with runnable examples |
+| [Presets](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/presets/index.html) | the built-in PySCF level, the full preset file, the PySCF cross-check |
 | [Numerical algorithms](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/algorithms/index.html) | radial maps, angular rules, pruning, partition formulas |
 | [Partition derivative API](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/partition_derivatives/index.html) | tensor layouts, streaming, selection, sorted grids |
 | [Becke derivatives](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/becke_derivatives/index.html) | the classic derivation |
@@ -250,6 +257,7 @@ The repository also contains runnable examples:
 
 ```text
 cargo run --release --example user_build
+cargo run --release --example user_presets
 cargo run --release --example user_derivatives
 cargo run --release --example user_sorting
 ```

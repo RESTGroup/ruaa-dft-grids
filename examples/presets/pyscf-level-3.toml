@@ -1,0 +1,480 @@
+# PySCF Grids.level = 3 as a ruaa_dft_grids preset.
+#
+# One [[range]] per PySCF periodic row carries the level (n_rad, n_ang)
+# pair; each [[element]] entry carries that element's Treutler radial
+# scale and inherits n_rad and the angular layout from the range.  The
+# range radial_scale is a placeholder that every element entry replaces.
+#
+# Load it with any serde format: toml::from_str::<GridPreset>(..).
+
+name = "pyscf-level-3"
+radial = "treutler_ahlrichs"
+
+# H, He
+[[range]]
+z_min = 1
+z_max = 2
+n_rad = 50
+radial_scale = 1.0
+angular = { pruned = { base = 302, prune = "nwchem" } }
+
+# Li-Ne
+[[range]]
+z_min = 3
+z_max = 10
+n_rad = 75
+radial_scale = 1.0
+angular = { pruned = { base = 302, prune = "nwchem" } }
+
+# Na-Ar
+[[range]]
+z_min = 11
+z_max = 18
+n_rad = 80
+radial_scale = 1.0
+angular = { pruned = { base = 434, prune = "nwchem" } }
+
+# K-Kr
+[[range]]
+z_min = 19
+z_max = 36
+n_rad = 90
+radial_scale = 1.0
+angular = { pruned = { base = 434, prune = "nwchem" } }
+
+# Rb-Xe
+[[range]]
+z_min = 37
+z_max = 54
+n_rad = 95
+radial_scale = 1.0
+angular = { pruned = { base = 434, prune = "nwchem" } }
+
+# Cs-Rn
+[[range]]
+z_min = 55
+z_max = 86
+n_rad = 100
+radial_scale = 1.0
+angular = { pruned = { base = 434, prune = "nwchem" } }
+
+# Fr-Lr (the Treutler scale table ends at Z = 103)
+[[range]]
+z_min = 87
+z_max = 103
+n_rad = 105
+radial_scale = 1.0
+angular = { pruned = { base = 434, prune = "nwchem" } }
+
+# One radial scale per element.
+[[element]]
+z = 1
+radial_scale = 0.8
+
+[[element]]
+z = 2
+radial_scale = 0.9
+
+[[element]]
+z = 3
+radial_scale = 1.8
+
+[[element]]
+z = 4
+radial_scale = 1.4
+
+[[element]]
+z = 5
+radial_scale = 1.3
+
+[[element]]
+z = 6
+radial_scale = 1.1
+
+[[element]]
+z = 7
+radial_scale = 0.9
+
+[[element]]
+z = 8
+radial_scale = 0.9
+
+[[element]]
+z = 9
+radial_scale = 0.9
+
+[[element]]
+z = 10
+radial_scale = 0.9
+
+[[element]]
+z = 11
+radial_scale = 1.4
+
+[[element]]
+z = 12
+radial_scale = 1.3
+
+[[element]]
+z = 13
+radial_scale = 1.3
+
+[[element]]
+z = 14
+radial_scale = 1.2
+
+[[element]]
+z = 15
+radial_scale = 1.1
+
+[[element]]
+z = 16
+radial_scale = 1.0
+
+[[element]]
+z = 17
+radial_scale = 1.0
+
+[[element]]
+z = 18
+radial_scale = 1.0
+
+[[element]]
+z = 19
+radial_scale = 1.5
+
+[[element]]
+z = 20
+radial_scale = 1.4
+
+[[element]]
+z = 21
+radial_scale = 1.3
+
+[[element]]
+z = 22
+radial_scale = 1.2
+
+[[element]]
+z = 23
+radial_scale = 1.2
+
+[[element]]
+z = 24
+radial_scale = 1.2
+
+[[element]]
+z = 25
+radial_scale = 1.2
+
+[[element]]
+z = 26
+radial_scale = 1.2
+
+[[element]]
+z = 27
+radial_scale = 1.2
+
+[[element]]
+z = 28
+radial_scale = 1.1
+
+[[element]]
+z = 29
+radial_scale = 1.1
+
+[[element]]
+z = 30
+radial_scale = 1.1
+
+[[element]]
+z = 31
+radial_scale = 1.1
+
+[[element]]
+z = 32
+radial_scale = 1.0
+
+[[element]]
+z = 33
+radial_scale = 0.9
+
+[[element]]
+z = 34
+radial_scale = 0.9
+
+[[element]]
+z = 35
+radial_scale = 0.9
+
+[[element]]
+z = 36
+radial_scale = 0.9
+
+[[element]]
+z = 37
+radial_scale = 2.0
+
+[[element]]
+z = 38
+radial_scale = 1.7
+
+[[element]]
+z = 39
+radial_scale = 1.5
+
+[[element]]
+z = 40
+radial_scale = 1.5
+
+[[element]]
+z = 41
+radial_scale = 1.35
+
+[[element]]
+z = 42
+radial_scale = 1.35
+
+[[element]]
+z = 43
+radial_scale = 1.25
+
+[[element]]
+z = 44
+radial_scale = 1.2
+
+[[element]]
+z = 45
+radial_scale = 1.25
+
+[[element]]
+z = 46
+radial_scale = 1.3
+
+[[element]]
+z = 47
+radial_scale = 1.5
+
+[[element]]
+z = 48
+radial_scale = 1.5
+
+[[element]]
+z = 49
+radial_scale = 1.3
+
+[[element]]
+z = 50
+radial_scale = 1.2
+
+[[element]]
+z = 51
+radial_scale = 1.2
+
+[[element]]
+z = 52
+radial_scale = 1.15
+
+[[element]]
+z = 53
+radial_scale = 1.15
+
+[[element]]
+z = 54
+radial_scale = 1.15
+
+[[element]]
+z = 55
+radial_scale = 2.5
+
+[[element]]
+z = 56
+radial_scale = 2.2
+
+[[element]]
+z = 57
+radial_scale = 2.5
+
+[[element]]
+z = 58
+radial_scale = 1.5
+
+[[element]]
+z = 59
+radial_scale = 1.5
+
+[[element]]
+z = 60
+radial_scale = 1.5
+
+[[element]]
+z = 61
+radial_scale = 1.5
+
+[[element]]
+z = 62
+radial_scale = 1.5
+
+[[element]]
+z = 63
+radial_scale = 1.5
+
+[[element]]
+z = 64
+radial_scale = 1.5
+
+[[element]]
+z = 65
+radial_scale = 1.5
+
+[[element]]
+z = 66
+radial_scale = 1.5
+
+[[element]]
+z = 67
+radial_scale = 1.5
+
+[[element]]
+z = 68
+radial_scale = 1.5
+
+[[element]]
+z = 69
+radial_scale = 1.5
+
+[[element]]
+z = 70
+radial_scale = 1.5
+
+[[element]]
+z = 71
+radial_scale = 1.5
+
+[[element]]
+z = 72
+radial_scale = 1.5
+
+[[element]]
+z = 73
+radial_scale = 1.5
+
+[[element]]
+z = 74
+radial_scale = 1.5
+
+[[element]]
+z = 75
+radial_scale = 1.5
+
+[[element]]
+z = 76
+radial_scale = 1.5
+
+[[element]]
+z = 77
+radial_scale = 1.5
+
+[[element]]
+z = 78
+radial_scale = 1.5
+
+[[element]]
+z = 79
+radial_scale = 1.5
+
+[[element]]
+z = 80
+radial_scale = 1.5
+
+[[element]]
+z = 81
+radial_scale = 1.5
+
+[[element]]
+z = 82
+radial_scale = 1.5
+
+[[element]]
+z = 83
+radial_scale = 1.5
+
+[[element]]
+z = 84
+radial_scale = 1.5
+
+[[element]]
+z = 85
+radial_scale = 1.5
+
+[[element]]
+z = 86
+radial_scale = 1.5
+
+[[element]]
+z = 87
+radial_scale = 2.5
+
+[[element]]
+z = 88
+radial_scale = 2.1
+
+[[element]]
+z = 89
+radial_scale = 3.685
+
+[[element]]
+z = 90
+radial_scale = 1.5
+
+[[element]]
+z = 91
+radial_scale = 1.5
+
+[[element]]
+z = 92
+radial_scale = 1.5
+
+[[element]]
+z = 93
+radial_scale = 1.5
+
+[[element]]
+z = 94
+radial_scale = 1.5
+
+[[element]]
+z = 95
+radial_scale = 1.5
+
+[[element]]
+z = 96
+radial_scale = 1.5
+
+[[element]]
+z = 97
+radial_scale = 1.5
+
+[[element]]
+z = 98
+radial_scale = 1.5
+
+[[element]]
+z = 99
+radial_scale = 1.5
+
+[[element]]
+z = 100
+radial_scale = 1.5
+
+[[element]]
+z = 101
+radial_scale = 1.5
+
+[[element]]
+z = 102
+radial_scale = 1.5
+
+[[element]]
+z = 103
+radial_scale = 1.5

@@ -23,8 +23,10 @@ Third-party notices
 
    The PySCF preset tables and the radial/pruning/partition formulas in
    `src/params.rs`, `src/pyscf/`, `src/radial/`, `src/prune/` and
-   `src/partition/` are transcribed from PySCF's published
-   `pyscf.dft.radi`, `pyscf.dft.gen_grid` and `pyscf.data.radii` modules.
+   `src/partition/`, together with the derived preset file
+   `examples/presets/pyscf-level-3.toml`, are transcribed from PySCF's
+   published `pyscf.dft.radi`, `pyscf.dft.gen_grid` and
+   `pyscf.data.radii` modules.
    PySCF's NOTICE is reproduced below.
 
    Copyright 2014-2024 The PySCF Developers.

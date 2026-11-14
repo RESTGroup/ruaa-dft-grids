@@ -37,6 +37,10 @@ lightweight-simd = "0.1.1"
 serde = { version = "1", features = ["derive", "rc"] }
 thiserror = "2.0"
 
+[dev-dependencies]
+# The preset example and its test target read and write preset files.
+toml = "0.8"
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]

@@ -70,6 +70,20 @@ out explicitly.
   `rstsr-sci-traits` implementation; the point order and rule values are
   unchanged.
 
+### Documentation
+
+- New presets page (`docs/presets.md`) walks through PySCF's
+  `Grids.level = 3` preset: the built-in `PyscfGridSpec`, the same topology as
+  a data-driven `GridPreset`, the complete
+  `examples/presets/pyscf-level-3.toml` file (seven ranges, 103 element
+  entries), a per-element override, and the optional PySCF cross-check.
+- New `examples/user_presets.rs` and `tests/preset_api.rs` cover the TOML
+  round trip, the `element` > `range` > `default` precedence, and the equality
+  of the preset file with the built-in PySCF atomic grids for Z = 1–103.
+- `examples/presets/check_against_pyscf.py` compares the preset's atomic grids
+  with PySCF's `gen_atomic_grids` (shell sizes, radii, radial weights and the
+  full point set).  It is an optional manual check, not a `cargo test` target.
+
 ### Packaging
 
 - The PyO3 and C-ABI binding crates were moved out of the published crate
@@ -77,5 +91,7 @@ out explicitly.
   core crate, its tests, examples and docs.
 - `NOTICE` now records the Apache-2.0 `rstsr` and PySCF attributions and
   states that ORCA/Gaussian tables and probes are not part of the package.
-- `cargo test` is offline and self-contained; cross-code reference probes
-  are maintained outside the package.
+- `cargo test` is offline and self-contained.  Cross-code reference goldens
+  are maintained outside the package; the optional PySCF cross-check in
+  `examples/presets/` builds its reference at run time and is not part of the
+  test suite.
