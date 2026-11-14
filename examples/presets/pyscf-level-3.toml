@@ -1,14 +1,126 @@
 # PySCF Grids.level = 3 as a ruaa_dft_grids preset.
 #
 # One [[range]] per PySCF periodic row carries the level (n_rad, n_ang)
-# pair; each [[element]] entry carries that element's Treutler radial
-# scale and inherits n_rad and the angular layout from the range.  The
-# range radial_scale is a placeholder that every element entry replaces.
+# pair; each element entry carries that element's Treutler radial scale
+# and inherits n_rad and the angular layout from its range.  The range
+# radial_scale is a placeholder that every element entry replaces.
+#
+# The element table is the compact form accepted by GridPreset's
+# deserializer: one inline object per nuclear charge in a top-level
+# array.  A [[element]] block per entry is accepted too.  The array must
+# precede the [[range]] headers because TOML scopes bare keys to the
+# last table header.
 #
 # Load it with any serde format: toml::from_str::<GridPreset>(..).
 
 name = "pyscf-level-3"
 radial = "treutler_ahlrichs"
+
+element = [
+    { z = 1, radial_scale = 0.8 },
+    { z = 2, radial_scale = 0.9 },
+    { z = 3, radial_scale = 1.8 },
+    { z = 4, radial_scale = 1.4 },
+    { z = 5, radial_scale = 1.3 },
+    { z = 6, radial_scale = 1.1 },
+    { z = 7, radial_scale = 0.9 },
+    { z = 8, radial_scale = 0.9 },
+    { z = 9, radial_scale = 0.9 },
+    { z = 10, radial_scale = 0.9 },
+    { z = 11, radial_scale = 1.4 },
+    { z = 12, radial_scale = 1.3 },
+    { z = 13, radial_scale = 1.3 },
+    { z = 14, radial_scale = 1.2 },
+    { z = 15, radial_scale = 1.1 },
+    { z = 16, radial_scale = 1.0 },
+    { z = 17, radial_scale = 1.0 },
+    { z = 18, radial_scale = 1.0 },
+    { z = 19, radial_scale = 1.5 },
+    { z = 20, radial_scale = 1.4 },
+    { z = 21, radial_scale = 1.3 },
+    { z = 22, radial_scale = 1.2 },
+    { z = 23, radial_scale = 1.2 },
+    { z = 24, radial_scale = 1.2 },
+    { z = 25, radial_scale = 1.2 },
+    { z = 26, radial_scale = 1.2 },
+    { z = 27, radial_scale = 1.2 },
+    { z = 28, radial_scale = 1.1 },
+    { z = 29, radial_scale = 1.1 },
+    { z = 30, radial_scale = 1.1 },
+    { z = 31, radial_scale = 1.1 },
+    { z = 32, radial_scale = 1.0 },
+    { z = 33, radial_scale = 0.9 },
+    { z = 34, radial_scale = 0.9 },
+    { z = 35, radial_scale = 0.9 },
+    { z = 36, radial_scale = 0.9 },
+    { z = 37, radial_scale = 2.0 },
+    { z = 38, radial_scale = 1.7 },
+    { z = 39, radial_scale = 1.5 },
+    { z = 40, radial_scale = 1.5 },
+    { z = 41, radial_scale = 1.35 },
+    { z = 42, radial_scale = 1.35 },
+    { z = 43, radial_scale = 1.25 },
+    { z = 44, radial_scale = 1.2 },
+    { z = 45, radial_scale = 1.25 },
+    { z = 46, radial_scale = 1.3 },
+    { z = 47, radial_scale = 1.5 },
+    { z = 48, radial_scale = 1.5 },
+    { z = 49, radial_scale = 1.3 },
+    { z = 50, radial_scale = 1.2 },
+    { z = 51, radial_scale = 1.2 },
+    { z = 52, radial_scale = 1.15 },
+    { z = 53, radial_scale = 1.15 },
+    { z = 54, radial_scale = 1.15 },
+    { z = 55, radial_scale = 2.5 },
+    { z = 56, radial_scale = 2.2 },
+    { z = 57, radial_scale = 2.5 },
+    { z = 58, radial_scale = 1.5 },
+    { z = 59, radial_scale = 1.5 },
+    { z = 60, radial_scale = 1.5 },
+    { z = 61, radial_scale = 1.5 },
+    { z = 62, radial_scale = 1.5 },
+    { z = 63, radial_scale = 1.5 },
+    { z = 64, radial_scale = 1.5 },
+    { z = 65, radial_scale = 1.5 },
+    { z = 66, radial_scale = 1.5 },
+    { z = 67, radial_scale = 1.5 },
+    { z = 68, radial_scale = 1.5 },
+    { z = 69, radial_scale = 1.5 },
+    { z = 70, radial_scale = 1.5 },
+    { z = 71, radial_scale = 1.5 },
+    { z = 72, radial_scale = 1.5 },
+    { z = 73, radial_scale = 1.5 },
+    { z = 74, radial_scale = 1.5 },
+    { z = 75, radial_scale = 1.5 },
+    { z = 76, radial_scale = 1.5 },
+    { z = 77, radial_scale = 1.5 },
+    { z = 78, radial_scale = 1.5 },
+    { z = 79, radial_scale = 1.5 },
+    { z = 80, radial_scale = 1.5 },
+    { z = 81, radial_scale = 1.5 },
+    { z = 82, radial_scale = 1.5 },
+    { z = 83, radial_scale = 1.5 },
+    { z = 84, radial_scale = 1.5 },
+    { z = 85, radial_scale = 1.5 },
+    { z = 86, radial_scale = 1.5 },
+    { z = 87, radial_scale = 2.5 },
+    { z = 88, radial_scale = 2.1 },
+    { z = 89, radial_scale = 3.685 },
+    { z = 90, radial_scale = 1.5 },
+    { z = 91, radial_scale = 1.5 },
+    { z = 92, radial_scale = 1.5 },
+    { z = 93, radial_scale = 1.5 },
+    { z = 94, radial_scale = 1.5 },
+    { z = 95, radial_scale = 1.5 },
+    { z = 96, radial_scale = 1.5 },
+    { z = 97, radial_scale = 1.5 },
+    { z = 98, radial_scale = 1.5 },
+    { z = 99, radial_scale = 1.5 },
+    { z = 100, radial_scale = 1.5 },
+    { z = 101, radial_scale = 1.5 },
+    { z = 102, radial_scale = 1.5 },
+    { z = 103, radial_scale = 1.5 },
+]
 
 # H, He
 [[range]]
@@ -65,416 +177,3 @@ z_max = 103
 n_rad = 105
 radial_scale = 1.0
 angular = { pruned = { base = 434, prune = "nwchem" } }
-
-# One radial scale per element.
-[[element]]
-z = 1
-radial_scale = 0.8
-
-[[element]]
-z = 2
-radial_scale = 0.9
-
-[[element]]
-z = 3
-radial_scale = 1.8
-
-[[element]]
-z = 4
-radial_scale = 1.4
-
-[[element]]
-z = 5
-radial_scale = 1.3
-
-[[element]]
-z = 6
-radial_scale = 1.1
-
-[[element]]
-z = 7
-radial_scale = 0.9
-
-[[element]]
-z = 8
-radial_scale = 0.9
-
-[[element]]
-z = 9
-radial_scale = 0.9
-
-[[element]]
-z = 10
-radial_scale = 0.9
-
-[[element]]
-z = 11
-radial_scale = 1.4
-
-[[element]]
-z = 12
-radial_scale = 1.3
-
-[[element]]
-z = 13
-radial_scale = 1.3
-
-[[element]]
-z = 14
-radial_scale = 1.2
-
-[[element]]
-z = 15
-radial_scale = 1.1
-
-[[element]]
-z = 16
-radial_scale = 1.0
-
-[[element]]
-z = 17
-radial_scale = 1.0
-
-[[element]]
-z = 18
-radial_scale = 1.0
-
-[[element]]
-z = 19
-radial_scale = 1.5
-
-[[element]]
-z = 20
-radial_scale = 1.4
-
-[[element]]
-z = 21
-radial_scale = 1.3
-
-[[element]]
-z = 22
-radial_scale = 1.2
-
-[[element]]
-z = 23
-radial_scale = 1.2
-
-[[element]]
-z = 24
-radial_scale = 1.2
-
-[[element]]
-z = 25
-radial_scale = 1.2
-
-[[element]]
-z = 26
-radial_scale = 1.2
-
-[[element]]
-z = 27
-radial_scale = 1.2
-
-[[element]]
-z = 28
-radial_scale = 1.1
-
-[[element]]
-z = 29
-radial_scale = 1.1
-
-[[element]]
-z = 30
-radial_scale = 1.1
-
-[[element]]
-z = 31
-radial_scale = 1.1
-
-[[element]]
-z = 32
-radial_scale = 1.0
-
-[[element]]
-z = 33
-radial_scale = 0.9
-
-[[element]]
-z = 34
-radial_scale = 0.9
-
-[[element]]
-z = 35
-radial_scale = 0.9
-
-[[element]]
-z = 36
-radial_scale = 0.9
-
-[[element]]
-z = 37
-radial_scale = 2.0
-
-[[element]]
-z = 38
-radial_scale = 1.7
-
-[[element]]
-z = 39
-radial_scale = 1.5
-
-[[element]]
-z = 40
-radial_scale = 1.5
-
-[[element]]
-z = 41
-radial_scale = 1.35
-
-[[element]]
-z = 42
-radial_scale = 1.35
-
-[[element]]
-z = 43
-radial_scale = 1.25
-
-[[element]]
-z = 44
-radial_scale = 1.2
-
-[[element]]
-z = 45
-radial_scale = 1.25
-
-[[element]]
-z = 46
-radial_scale = 1.3
-
-[[element]]
-z = 47
-radial_scale = 1.5
-
-[[element]]
-z = 48
-radial_scale = 1.5
-
-[[element]]
-z = 49
-radial_scale = 1.3
-
-[[element]]
-z = 50
-radial_scale = 1.2
-
-[[element]]
-z = 51
-radial_scale = 1.2
-
-[[element]]
-z = 52
-radial_scale = 1.15
-
-[[element]]
-z = 53
-radial_scale = 1.15
-
-[[element]]
-z = 54
-radial_scale = 1.15
-
-[[element]]
-z = 55
-radial_scale = 2.5
-
-[[element]]
-z = 56
-radial_scale = 2.2
-
-[[element]]
-z = 57
-radial_scale = 2.5
-
-[[element]]
-z = 58
-radial_scale = 1.5
-
-[[element]]
-z = 59
-radial_scale = 1.5
-
-[[element]]
-z = 60
-radial_scale = 1.5
-
-[[element]]
-z = 61
-radial_scale = 1.5
-
-[[element]]
-z = 62
-radial_scale = 1.5
-
-[[element]]
-z = 63
-radial_scale = 1.5
-
-[[element]]
-z = 64
-radial_scale = 1.5
-
-[[element]]
-z = 65
-radial_scale = 1.5
-
-[[element]]
-z = 66
-radial_scale = 1.5
-
-[[element]]
-z = 67
-radial_scale = 1.5
-
-[[element]]
-z = 68
-radial_scale = 1.5
-
-[[element]]
-z = 69
-radial_scale = 1.5
-
-[[element]]
-z = 70
-radial_scale = 1.5
-
-[[element]]
-z = 71
-radial_scale = 1.5
-
-[[element]]
-z = 72
-radial_scale = 1.5
-
-[[element]]
-z = 73
-radial_scale = 1.5
-
-[[element]]
-z = 74
-radial_scale = 1.5
-
-[[element]]
-z = 75
-radial_scale = 1.5
-
-[[element]]
-z = 76
-radial_scale = 1.5
-
-[[element]]
-z = 77
-radial_scale = 1.5
-
-[[element]]
-z = 78
-radial_scale = 1.5
-
-[[element]]
-z = 79
-radial_scale = 1.5
-
-[[element]]
-z = 80
-radial_scale = 1.5
-
-[[element]]
-z = 81
-radial_scale = 1.5
-
-[[element]]
-z = 82
-radial_scale = 1.5
-
-[[element]]
-z = 83
-radial_scale = 1.5
-
-[[element]]
-z = 84
-radial_scale = 1.5
-
-[[element]]
-z = 85
-radial_scale = 1.5
-
-[[element]]
-z = 86
-radial_scale = 1.5
-
-[[element]]
-z = 87
-radial_scale = 2.5
-
-[[element]]
-z = 88
-radial_scale = 2.1
-
-[[element]]
-z = 89
-radial_scale = 3.685
-
-[[element]]
-z = 90
-radial_scale = 1.5
-
-[[element]]
-z = 91
-radial_scale = 1.5
-
-[[element]]
-z = 92
-radial_scale = 1.5
-
-[[element]]
-z = 93
-radial_scale = 1.5
-
-[[element]]
-z = 94
-radial_scale = 1.5
-
-[[element]]
-z = 95
-radial_scale = 1.5
-
-[[element]]
-z = 96
-radial_scale = 1.5
-
-[[element]]
-z = 97
-radial_scale = 1.5
-
-[[element]]
-z = 98
-radial_scale = 1.5
-
-[[element]]
-z = 99
-radial_scale = 1.5
-
-[[element]]
-z = 100
-radial_scale = 1.5
-
-[[element]]
-z = 101
-radial_scale = 1.5
-
-[[element]]
-z = 102
-radial_scale = 1.5
-
-[[element]]
-z = 103
-radial_scale = 1.5

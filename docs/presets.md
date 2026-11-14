@@ -132,13 +132,23 @@ for an element and no matching range/default returns
 ## 3. The complete preset file
 
 `examples/presets/pyscf-level-3.toml` is the level-3 preset above for the
-whole table: seven `[[range]]` blocks and 103 `[[element]]` entries.  It is
-the file loaded by `examples/user_presets.rs` and checked by the script in §5.
-An excerpt:
+whole table: 103 element entries and seven `[[range]]` blocks.  The elements
+use the compact top-level array form, one inline object per nuclear charge.
+It is the file loaded by `examples/user_presets.rs` and checked by the script
+in §5.  An excerpt:
 
 ```toml
 name = "pyscf-level-3"
 radial = "treutler_ahlrichs"
+
+# One inline object per element.  The top-level array must precede the
+# table headers below (TOML scopes bare keys to the last table header).
+element = [
+    { z = 1, radial_scale = 0.8 },
+    { z = 6, radial_scale = 1.1 },
+    { z = 8, radial_scale = 0.9 },
+    # ... 100 more entries ...
+]
 
 # H, He
 [[range]]
@@ -155,26 +165,14 @@ z_max = 10
 n_rad = 75
 radial_scale = 1.0
 angular = { pruned = { base = 302, prune = "nwchem" } }
-
-# ... five more ranges, then one entry per element ...
-
-[[element]]
-z = 1
-radial_scale = 0.8
-
-[[element]]
-z = 6
-radial_scale = 1.1
-
-[[element]]
-z = 8
-radial_scale = 0.9
 ```
 
 The range `radial_scale = 1.0` is a placeholder: every element in the range
 has its own entry, and a range value applies only to an element without an
 entry.  A `[[range]]` or `[default]` block is a complete element block; only
-`[[element]]` entries are partial.  The partial entry is what keeps a
+element entries are partial.  An element entry is either an object in the
+top-level `element` array (shown above) or an `[[element]]` block; both
+spellings parse to the same `GridPreset`.  The partial entry is what keeps a
 full-periodic-table preset compact: seven ranges plus one scale per element.
 
 Read the file with the `serde` format crate of your choice.  With
@@ -196,13 +194,15 @@ fn main() -> ruaa_dft_grids::Result<()> {
 
 The core crate ships no file loader and no file-location convention; the data
 types and their invariants are the API.  Writing a preset back with `serde`
-emits complete element entries, which are valid input, just longer than the
-compact form above.  `tests/preset_api.rs` checks the TOML round trip, the
-inheritance order, and that this file equals the loop-built preset.
+emits `[[element]]` blocks with complete entries.  That is the canonical
+output form and valid input; the committed file uses the more compact array
+input form.  `tests/preset_api.rs` checks the TOML round trip (block form),
+the inheritance order, and that the committed file (array form) equals the
+loop-built preset.
 
 The file covers Z = 1–103 because the Treutler scale table ends there.  PySCF
 itself has no default Treutler scale for Z = 104–118 either; add an explicit
-`[[range]]` or `[[element]]` block with a `radial_scale` if you have one.
+range or element entry with a `radial_scale` if you have one.
 
 ## 4. Change one element
 
@@ -306,8 +306,9 @@ does not carry a partition or radii choice.
   missing Treutler table instead.
 * A level above 9 is `UnsupportedLevel`; a charge outside Z = 1–118 is
   `UnsupportedElement`.
-* A partial `[[element]]` entry with no `[[range]]`/`[default]` to inherit
-  from is a deserialization error naming the missing field.
+* A partial element entry (an object in the `element` array or an
+  `[[element]]` block) with no `[[range]]`/`[default]` to inherit from is a
+  deserialization error naming the missing field.
 * `Shells`/`ProductShells` with `molecular_cutoffs = true` and a cutoff is
   `UnsupportedGrid`; a shell list that does not cover the active shells is
   `LengthMismatch` when the grid is built.

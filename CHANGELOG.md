@@ -17,10 +17,12 @@ out explicitly.
 - `GridPreset`/`ElementPreset`/`AngularLayout` supply shell counts, radial
   scales, cutoffs, pruning policies and explicit per-shell angular sizes.
   The types implement `serde`; the file form uses `[[element]]`, `[[range]]`
-  and `default` blocks.  A range supplies shared parameters for a contiguous
-  charge range, and element entries may override only the fields that differ
-  (the missing fields are inherited).  This keeps a full-periodic-table
-  preset compact.
+  and `default` blocks.  An element entry can also be one inline object in a
+  top-level `element` array (for example `{ z = 8, radial_scale = 0.9 }`); the
+  shipped PySCF preset uses that compact spelling.  A range supplies shared
+  parameters for a contiguous charge range, and element entries may override
+  only the fields that differ (the missing fields are inherited).  This keeps
+  a full-periodic-table preset compact.
 - `AngularLayout::ProductShells(Vec<usize>)` adds a per-shell adaptive-phi
   Gauss–Legendre product rule (the construction used by ORCA `AngularGrid 0`
   for H–Ne).
@@ -76,7 +78,8 @@ out explicitly.
   `Grids.level = 3` preset: the built-in `PyscfGridSpec`, the same topology as
   a data-driven `GridPreset`, the complete
   `examples/presets/pyscf-level-3.toml` file (seven ranges, 103 element
-  entries), a per-element override, and the optional PySCF cross-check.
+  entries in the compact `element` array), a per-element override, and the
+  optional PySCF cross-check.
 - New `examples/user_presets.rs` and `tests/preset_api.rs` cover the TOML
   round trip, the `element` > `range` > `default` precedence, and the equality
   of the preset file with the built-in PySCF atomic grids for Z = 1–103.

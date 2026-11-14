@@ -1,11 +1,16 @@
 # PySCF level-3 preset example
 
 `pyscf-level-3.toml` is PySCF's `Grids(level = 3)` construction as a
-`ruaa_dft_grids::preset::GridPreset` data file: seven `[[range]]` blocks (one
-per PySCF periodic row) and one `[[element]]` entry per nuclear charge, Z =
-1–103.  The element entries carry the Treutler radial scale and inherit the
-level sizes and the NWChem pruning layout from the range; the range
-`radial_scale` is a placeholder that every element entry replaces.
+`ruaa_dft_grids::preset::GridPreset` data file: one inline element object per
+nuclear charge (Z = 1–103) in the top-level `element = [...]` array, plus
+seven `[[range]]` blocks (one per PySCF periodic row).  The element entries
+carry the Treutler radial scale and inherit the level sizes and the NWChem
+pruning layout from the range; the range `radial_scale` is a placeholder that
+every element entry replaces.
+
+The array must precede the `[[range]]` headers because TOML scopes bare keys
+to the last table header.  `[[element]]` blocks are accepted too; they are the
+form the serializer writes.
 
 The file is loaded by `../user_presets.rs` and parsed by
 `../../tests/preset_api.rs`, which requires it to equal the preset built from

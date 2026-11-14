@@ -124,6 +124,11 @@ element entries inherit the remaining fields (an element wins over its range,
 which wins over `default`).  This keeps a full-periodic-table preset compact:
 one block per row plus the per-element radial scale.
 
+The file form also accepts a compact top-level `element = [...]` array with
+one inline object per element, such as `{ z = 8, radial_scale = 0.9 }`.  The
+shipped PySCF preset uses that spelling.  The array must precede the
+`[[range]]` headers, because TOML scopes bare keys to the last table header.
+
 The [presets page](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/presets/index.html)
 opens PySCF's level 3 preset as data, ships the complete
 `examples/presets/pyscf-level-3.toml` (seven ranges, 103 element entries), and

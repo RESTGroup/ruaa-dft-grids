@@ -241,7 +241,7 @@ fn main() -> Result<()> {
     let loaded: GridPreset = toml::from_str(&text).expect("the written preset parses");
     assert_eq!(loaded, preset);
     println!(
-        "  TOML round trip: {} bytes, {} element entries, {} range blocks",
+        "  serializer round trip: {} bytes, {} element entries, {} range blocks",
         text.len(),
         loaded.elements.len(),
         loaded.defaults.len()

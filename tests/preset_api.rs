@@ -109,9 +109,10 @@ fn the_preset_stops_where_the_treutler_table_stops() {
 #[test]
 fn the_committed_preset_file_matches_the_programmatic_preset() {
     // `examples/presets/pyscf-level-3.toml` is the full periodic-table file
-    // used by the preset page and the Python cross-check.  Parse it and
-    // require the same topology as the loop-built preset, so the file cannot
-    // drift from the PySCF tables.
+    // used by the preset page and the Python cross-check.  It uses the compact
+    // top-level `element = [...]` array; parse it and require the same
+    // topology as the loop-built preset, so the file cannot drift from the
+    // PySCF tables.
     let text = include_str!("../examples/presets/pyscf-level-3.toml");
     let file: GridPreset = toml::from_str(text).unwrap();
     let programmatic = pyscf_level_preset(3).unwrap();
@@ -135,7 +136,9 @@ fn preset_file_round_trips_through_toml() {
     assert_eq!(loaded.radial, Radial::TreutlerAhlrichs);
     assert_eq!(loaded.element(8).unwrap(), preset.element(8).unwrap());
 
-    // The serialized form keeps the block order: ranges before the elements.
+    // The serializer writes `[[element]]` blocks (the canonical output
+    // form); the committed file uses the compact `element` array instead.
+    // Both spellings parse to the same `GridPreset`.
     let range_at = text.find("[[range]]").unwrap();
     let element_at = text.find("[[element]]").unwrap();
     assert!(range_at < element_at, "ranges are written before elements");

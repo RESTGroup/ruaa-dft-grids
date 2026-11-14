@@ -131,9 +131,11 @@ set, and an `AngularLayout`:
 | `Product { theta }` | Gauss–Legendre theta x uniform-phi product rule |
 | `ProductShells(Vec<usize>)` | one theta-ring count per shell, with the per-ring phi count chosen adaptively |
 
-Presets implement `serde`.  The file form uses one `[[element]]` entry per
-element; a `[[range]]` entry supplies shared parameters for a contiguous
-charge range, and an element entry may override only the fields that differ:
+Presets implement `serde`.  The file form uses one element entry per
+element — an `[[element]]` block, or one object in a top-level
+`element = [...]` array; a `[[range]]` entry supplies shared parameters for a
+contiguous charge range, and an element entry may override only the fields
+that differ:
 
 ```toml
 name = "example"
