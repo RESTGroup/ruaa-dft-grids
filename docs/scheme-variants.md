@@ -10,26 +10,26 @@ derivation.
 All schemes share the normalized weight
 
 $$
-w&#95;g = q&#95;g\ \frac{P&#95;{A&#95;g}}{Z&#95;g},
+w_g = q_g\ \frac{P_{A_g}}{Z_g},
 \qquad
-Z&#95;g = \sum&#95;M P&#95;M,
+Z_g = \sum_M P_M,
 $$
 
 and the **[partition derivative API](crate::doc::partition_derivatives)**
 contracts (`dw`, `ddw`, `dc`, `ddc`, atom selection, generating-atom
-correction). Only the unnormalized cell product $P&#95;M$ changes.
+correction). Only the unnormalized cell product $P_M$ changes.
 
 ## 1. Cost at a glance
 
 | Scheme | Cell factor | Pair work per point | Derivative backend |
 |---|---|---|---|
 | classic Becke | full $\mu$ polynomial | $O(n^2)$ | gradient: fixed lanes; Hessian: lane or pointwise |
-| SSF | compact support, exactly 0/1 outside $\lvert\nu\rvert \le 0.64$ | $O(n\log n)$ + $O(n&#95;\mathrm{surv}\ n)$ | sparse active-pair passes |
-| Gaussian SS | compact asymmetric support, exactly 0/1 outside $[-0.86, 0.852]$ | $O(n\log n)$ + $O(n&#95;\mathrm{surv}\ n)$ | sparse active-pair passes |
-| LKO | saturating $R&#95;{AB}$, clamped $\mu$ | $O(\lvert S\rvert\ \lvert T\rvert)$ | masked sparse lane gradient above the cut (dense lanes below); pointwise Hessian (dense below the crossover, sparse near-set above) |
+| SSF | compact support, exactly 0/1 outside $\lvert\nu\rvert \le 0.64$ | $O(n\log n)$ + $O(n_\mathrm{surv}\ n)$ | sparse active-pair passes |
+| Gaussian SS | compact asymmetric support, exactly 0/1 outside $[-0.86, 0.852]$ | $O(n\log n)$ + $O(n_\mathrm{surv}\ n)$ | sparse active-pair passes |
+| LKO | saturating $R_{AB}$, clamped $\mu$ | $O(\lvert S\rvert\ \lvert T\rvert)$ | masked sparse lane gradient above the cut (dense lanes below); pointwise Hessian (dense below the crossover, sparse near-set above) |
 | mBecke | classic product, nearest-first order | $O(n^2)$ | classic backend when the clamp is inert |
 
-$n$ is the number of atoms, $n&#95;\mathrm{surv}$ the survivors of the
+$n$ is the number of atoms, $n_\mathrm{surv}$ the survivors of the
 compact-support candidate scan, and $S$, $T$ the LKO near sets defined in
 §3.
 
@@ -55,33 +55,33 @@ no-op; only pairs with $|\nu| < A$ (the *active* pairs) matter.
 Two consequences drive the kernel:
 
 1. **Only a closer atom can kill a product.** For a partner $j$ with
-   $d&#95;j \ge d&#95;M$, $\mu \le 0$ and, for every allowed size adjustment
+   $d_j \ge d_M$, $\mu \le 0$ and, for every allowed size adjustment
    $|a| \le 1/2$, $\nu \le 1/2 < A$. A product can therefore only be zeroed
    by a partner closer to the point than $M$.
-2. **A distance bound certifies the kill.** Let $a&#95;\mathrm{max}$ be the
-   largest $|a&#95;{AB}|$ in the molecule and $\mu&#95;\mathrm{kill}$ the root of
-   $\mu - a&#95;\mathrm{max}(1-\mu^2) = A$. With
+2. **A distance bound certifies the kill.** Let $a_\mathrm{max}$ be the
+   largest $|a_{AB}|$ in the molecule and $\mu_\mathrm{kill}$ the root of
+   $\mu - a_\mathrm{max}(1-\mu^2) = A$. With
 
     $$
-    R&#95;\mathrm{cut} = \frac{1+\mu&#95;\mathrm{kill}}{1-\mu&#95;\mathrm{kill}},
+    R_\mathrm{cut} = \frac{1+\mu_\mathrm{kill}}{1-\mu_\mathrm{kill}},
     \qquad
-    d&#95;M \ge R&#95;\mathrm{cut}\ d&#95;j
-    \quad\Longrightarrow\quad P&#95;M = 0,
+    d_M \ge R_\mathrm{cut}\ d_j
+    \quad\Longrightarrow\quad P_M = 0,
     $$
 
-   where $d&#95;j$ is the nearest centre distance. $R&#95;\mathrm{cut}$ is between
-   about $4.56$ (no adjustment) and $9.58$ ($a&#95;\mathrm{max}=1/2$); with the
+   where $d_j$ is the nearest centre distance. $R_\mathrm{cut}$ is between
+   about $4.56$ (no adjustment) and $9.58$ ($a_\mathrm{max}=1/2$); with the
    Bragg radii it is about $6.25$.
 
 The value kernel therefore evaluates all point–centre distances, takes the
-candidate prefix $d&#95;i \le R&#95;\mathrm{cut} d&#95;\mathrm{min}$, sorts it, and
+candidate prefix $d_i \le R_\mathrm{cut} d_\mathrm{min}$, sorts it, and
 evaluates products only for the survivors. The derivative kernels use the
 same survivors and add pair passes over the *active* pairs; every other pair
 has a locally constant factor and contributes neither a first nor a second
 derivative. The per-point work is
 
 $$
-O(n\log n) + O(n&#95;\mathrm{surv}\ n)
+O(n\log n) + O(n_\mathrm{surv}\ n)
 $$
 
 instead of $O(n^2)$. For small molecules the sort and bookkeeping dominate,
@@ -99,7 +99,7 @@ $$
 $$
 
 $$
-\ell&#95;2 = \frac{\partial^2\log s}{\partial\mu^2}
+\ell_2 = \frac{\partial^2\log s}{\partial\mu^2}
 = \frac{-\tfrac12\left(f^{\prime\prime}(\nu)\kappa^2 + f^{\prime}(\nu)\kappa^{\prime}\right)}{s}
 \quad - \ell^2.
 $$
@@ -117,7 +117,7 @@ Gaussian 16 `SSWeights` uses the same cell product with a different,
 asymmetric switch.  With $x=\nu/0.86$,
 
 $$
-F_1(x)=\frac{3003}{2048}\,x\left(
+F_1(x)=\frac{3003}{2048}\thinspace x\left(
 1-2x^2+3x^4-\frac{20}{7}x^6+\frac{5}{3}x^8
 -\frac{6}{11}x^{10}+\frac{1}{13}x^{12}\right),
 \qquad f(\nu)=2F_1(x),
@@ -128,8 +128,8 @@ the switch at $\nu\le -0.86$ (factor exactly one) and at
 $\nu\ge 0.852$ (factor exactly zero); the positive bound is slightly inside
 the polynomial endpoint.  The asymmetric clip does not change the kernel
 structure: only a closer partner can zero a product, and the candidate bound
-uses $\mu&#95;\mathrm{kill}=0.852$ instead of $A$.  Without a size adjustment
-$R&#95;\mathrm{cut}\approx 12.5$; it grows with $|a&#95;{AB}|$.
+uses $\mu_\mathrm{kill}=0.852$ instead of $A$.  Without a size adjustment
+$R_\mathrm{cut}\approx 12.5$; it grows with $|a_{AB}|$.
 
 The dense fallback evaluates the partner factor in its own direction because
 the two sides of the asymmetric switch are not complementary.  The sparse
@@ -149,19 +149,19 @@ length:
 
 $$
 \operatorname{sat}(r)
-= 5\left(1-\exp\left\lbrack -\sum&#95;{m=1}^{12}\frac{(r/5)^m}{m}\right\rbrack \right),
+= 5\left(1-\exp\left\lbrack -\sum_{m=1}^{12}\frac{(r/5)^m}{m}\right\rbrack \right),
 $$
 
 $$
-\mu&#95;{AB} = \frac{d&#95;A - d&#95;B}{\operatorname{sat}(R&#95;{AB})},
+\mu_{AB} = \frac{d_A - d_B}{\operatorname{sat}(R_{AB})},
 \qquad
-g = \operatorname{clamp}(\mu&#95;{AB}, -1, 1),
+g = \operatorname{clamp}(\mu_{AB}, -1, 1),
 \qquad
-\nu = g + a&#95;{AB}(1-g^2),
+\nu = g + a_{AB}(1-g^2),
 $$
 
 followed by the classic switch $s = \tfrac12(1-f(\nu))$. The size
-adjustment $a&#95;{AB}$ is the Treutler adjustment. The clamp is part of the
+adjustment $a_{AB}$ is the Treutler adjustment. The clamp is part of the
 definition; it makes the cell factors locally constant for pairs with
 $|\mu| \ge 1$.
 
@@ -169,22 +169,22 @@ $|\mu| \ge 1$.
 
 $\operatorname{sat}(r) < 5$ for every finite $r$, so
 $1/\operatorname{sat}(R) > 0.2$. For a point with nearest-centre distance
-$d&#95;\mathrm{min}$:
+$d_\mathrm{min}$:
 
-* If $d&#95;i > d&#95;\mathrm{min} + 5$, the pair with the nearest centre has
-  $\mu > 1$, hence $g = 1$, $f(1) = 1$ and $s&#95;i = 0$ exactly. Only atoms in
+* If $d_i > d_\mathrm{min} + 5$, the pair with the nearest centre has
+  $\mu > 1$, hence $g = 1$, $f(1) = 1$ and $s_i = 0$ exactly. Only atoms in
 
     $$
-    S = \lbrace i : d&#95;i \le d&#95;\mathrm{min} + 5 \rbrace
+    S = \lbrace i : d_i \le d_\mathrm{min} + 5 \rbrace
     $$
 
   can have a nonzero product.
 * A partner $j$ of a live atom changes the product only if its factor differs
-  from one. For $d&#95;j - d&#95;i \ge 5$, $\mu \le -1$, $g=-1$, $f(-1)=-1$ and
+  from one. For $d_j - d_i \ge 5$, $\mu \le -1$, $g=-1$, $f(-1)=-1$ and
   $s=1$ exactly. Only partners in
 
     $$
-    T = \lbrace j : d&#95;j \le d&#95;\mathrm{min} + 10 \rbrace
+    T = \lbrace j : d_j \le d_\mathrm{min} + 10 \rbrace
     $$
 
   matter; $S \subseteq T$.
@@ -194,22 +194,22 @@ $d&#95;\mathrm{min}$:
 
 The implementation widens both cuts by a small floating-point margin so the
 clamp is guaranteed despite the rounding of $1/\operatorname{sat}$ and of
-$d&#95;i - d&#95;j$. The weight kernel evaluates eight adjacent points at once with
+$d_i - d_j$. The weight kernel evaluates eight adjacent points at once with
 per-lane $S/T$ masks and a union candidate list; it is bitwise identical to
 the per-point reference. A dense `f64x8` fallback is used below the same
 kind of size threshold as SSF.
 
 ### 3.2 Derivative geometry
 
-With $f = d&#95;i - d&#95;j$ and $g = \operatorname{sat}(R&#95;{ij})$,
+With $f = d_i - d_j$ and $g = \operatorname{sat}(R_{ij})$,
 $\mu = f/g$. At a fixed grid point,
 
 $$
-\frac{\partial\mu}{\partial\mathbf R&#95;i}
-= \operatorname{fac}\ \hat{\mathbf r}&#95;i - \mu k\ \hat{\mathbf u}&#95;{ij},
+\frac{\partial\mu}{\partial\mathbf R_i}
+= \operatorname{fac}\ \hat{\mathbf r}\_i - \mu k\ \hat{\mathbf u}\_{ij},
 \qquad
-\frac{\partial\mu}{\partial\mathbf R&#95;j}
-= -\operatorname{fac}\ \hat{\mathbf r}&#95;j + \mu k\ \hat{\mathbf u}&#95;{ij},
+\frac{\partial\mu}{\partial\mathbf R_j}
+= -\operatorname{fac}\ \hat{\mathbf r}\_j + \mu k\ \hat{\mathbf u}\_{ij},
 $$
 
 where $\operatorname{fac} = 1/\operatorname{sat}$ and
@@ -219,13 +219,13 @@ from the quotient rule,
 $$
 \partial^2\mu
 = \operatorname{fac}\left\lbrack
-f&#95;{XY} - k(f&#95;X q&#95;Y + q&#95;X f&#95;Y)
-\quad + (k^2-k^{\prime})f q&#95;X q&#95;Y - k f\ \partial^2 R&#95;{XY}
+f_{XY} - k(f_X q_Y + q_X f_Y)
+\quad + (k^2-k^{\prime})f q_X q_Y - k f\ \partial^2 R_{XY}
 \right\rbrack ,
 $$
 
-with $q&#95;i = \hat{\mathbf u}&#95;{ij}$, $q&#95;j = -\hat{\mathbf u}&#95;{ij}$,
-$k^{\prime} = \operatorname{sat}^{\prime\prime}/\operatorname{sat} - k^2$, and $f&#95;{XY}$ the
+with $q_i = \hat{\mathbf u}\_{ij}$, $q_j = -\hat{\mathbf u}\_{ij}$,
+$k^{\prime} = \operatorname{sat}^{\prime\prime}/\operatorname{sat} - k^2$, and $f_{XY}$ the
 projection matrix of the differentiated roles. The same quotient helper as
 classic Becke is used, so the implementation shares its arithmetic structure.
 
@@ -250,13 +250,13 @@ $10^{-14}$ for the Hessian.
 ORCA's mBecke scheme sorts the atoms nearest-first at each point and
 multiplies the classic cell factors in that order. It adds:
 
-* a clamp $p$: $\nu \ge p$ sets $P&#95;i = 0$ and stops; $\nu \le -p$ skips the
+* a clamp $p$: $\nu \ge p$ sets $P_i = 0$ and stops; $\nu \le -p$ skips the
   pair (the factor is exactly one);
 * a relative early exit when the running remainder is negligible;
 * a nearest-atom shortcut when $p < 1$.
 
 The crate's default clamp is $p = 1.0$ (`MBECKE_CLAMP`). At this value and
-for $|a&#95;{AB}| \le 1/2$, the clamp cannot fire away from the boundary
+for $|a_{AB}| \le 1/2$, the clamp cannot fire away from the boundary
 $\nu = \pm1$: the product is algebraically identical to the classic Becke
 product, only the multiplication order and the early-exit truncation differ.
 The blocked value kernel therefore evaluates the classic eight-point pair
@@ -275,7 +275,7 @@ floating-point evaluation order. The evaluator checks the eligibility guard
 $$
 p \ge 1
 \quad\text{and}\quad
-\max&#95;{A,B}\lvert a&#95;{AB}\rvert \le \tfrac12
+\max_{A,B}\lvert a_{AB}\rvert \le \tfrac12
 $$
 
 before dispatching. A clamp $p < 1$, or a radii/adjustment choice for which

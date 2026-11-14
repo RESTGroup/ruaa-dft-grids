@@ -15,35 +15,35 @@ integral:
 $$
 \int F(\mathbf r)\ \mathrm d^3 r
 \quad\approx\quad
-\sum&#95;{g} w&#95;g\ F(\mathbf r&#95;g).
+\sum_{g} w_g\ F(\mathbf r_g).
 $$
 
 The points are generated atom by atom. Atom $A$ carries a spherical grid
 
 $$
-\mathbf r&#95;{A,i} = \mathbf R&#95;A + r&#95;i\ \hat{\mathbf u}&#95;j,
+\mathbf r_{A,i} = \mathbf R_A + r_i\ \hat{\mathbf u}\_j,
 $$
 
-where $r&#95;i$ is a radial node and $\hat{\mathbf u}&#95;j$ a direction on the unit
+where $r_i$ is a radial node and $\hat{\mathbf u}\_j$ a direction on the unit
 sphere. The **quadrature weight** of the point is
 
 $$
-q&#95;{A,ij} = w&#95;i^{(\mathrm{rad})}\ w&#95;j^{(\mathrm{ang})},
+q_{A,ij} = w_i^{(\mathrm{rad})}\ w_j^{(\mathrm{ang})},
 $$
 
 and the **total grid weight** used in the integral is
 
 $$
-w&#95;g = q&#95;g\ P&#95;g,
+w_g = q_g\ P_g,
 \qquad
-P&#95;g = \frac{\bar P&#95;g}{Z&#95;g},
+P_g = \frac{\bar P_g}{Z_g},
 \qquad
-Z&#95;g = \sum&#95;{M} P&#95;{M g}.
+Z_g = \sum_{M} P_{M g}.
 $$
 
-Here $P&#95;{M g}$ is the unnormalized partition cell function of atom $M$ at
-point $g$, $\bar P&#95;g$ is the cell function of the *generating atom* (the atom
-whose spherical grid produced the point), and $P&#95;g$ is the normalized
+Here $P_{M g}$ is the unnormalized partition cell function of atom $M$ at
+point $g$, $\bar P_g$ is the cell function of the *generating atom* (the atom
+whose spherical grid produced the point), and $P_g$ is the normalized
 partition fraction. The partition is the subject of §5.
 
 ### 1.1 Units and weight convention
@@ -54,12 +54,12 @@ partition fraction. The partition is the subject of §5.
   weight, so
 
     $$
-    w&#95;i^{(\mathrm{rad})} = 4\pi\ r&#95;i^2\ \Delta r&#95;i,
+    w_i^{(\mathrm{rad})} = 4\pi\ r_i^2\ \Delta r_i,
     \qquad
-    \sum&#95;i w&#95;i^{(\mathrm{rad})} \approx 4\pi \int r^2\ \mathrm d r .
+    \sum_i w_i^{(\mathrm{rad})} \approx 4\pi \int r^2\ \mathrm d r .
     $$
 
-* The product $w&#95;i^{(\mathrm{rad})} w&#95;j^{(\mathrm{ang})}$ is therefore the
+* The product $w_i^{(\mathrm{rad})} w_j^{(\mathrm{ang})}$ is therefore the
   volume element, and the placement of $4\pi$ is invisible to the
   integrator. `radial::Radial::radial_rd` is the raw $(r,\Delta r)$ kernel
   without the $4\pi$ or $r^2$ factors; `radial::Radial::grid_xi` applies the
@@ -79,20 +79,20 @@ selector in [`crate::radial::Radial`].
 
 The `Radial::OrcaOptM3` variant implements the Gauss–Chebyshev-corrected
 construction (the name is historical). For
-$i = 1,\ldots,n&#95;r$ and $\theta&#95;i = i\pi/(n&#95;r+1)$, with $s=\sin\theta&#95;i$ and
-$c=\cos\theta&#95;i$:
+$i = 1,\ldots,n_r$ and $\theta_i = i\pi/(n_r+1)$, with $s=\sin\theta_i$ and
+$c=\cos\theta_i$:
 
 $$
-t&#95;i = \frac{2i}{n&#95;r+1}
+t_i = \frac{2i}{n_r+1}
  \quad - s c\left(0.4244131815783876\ s^2 + \frac{2}{\pi}\right),
 $$
 
 $$
-r&#95;i = \frac{\xi}{\ln 2}\ln\frac{2}{t&#95;i},
+r_i = \frac{\xi}{\ln 2}\ln\frac{2}{t_i},
 \qquad
-w&#95;i = r&#95;i^2\
+w_i = r_i^2\
 \frac{16\xi}{3}\
-\frac{s^4}{t&#95;i\ln 2\ (n&#95;r+1)}.
+\frac{s^4}{t_i\ln 2\ (n_r+1)}.
 $$
 
 The weights already include the $r^2$ measure. The kernel stores shells
@@ -121,14 +121,14 @@ $4\pi$ and $r^2$ to produce the canonical weight.
 ### 2.3 Euler–Maclaurin squared ratio
 
 The `Radial::EulerMaclaurin` map is the squared-ratio Euler–Maclaurin
-construction. With $n = n&#95;\mathrm{rad}$ and $i = 0,\ldots,n-1$:
+construction. With $n = n_\mathrm{rad}$ and $i = 0,\ldots,n-1$:
 
 $$
-r&#95;i = \xi\left(\frac{i+1}{n-i}\right)^{2},
+r_i = \xi\left(\frac{i+1}{n-i}\right)^{2},
 \qquad
-x&#95;i = \frac{i+1}{n+1},
+x_i = \frac{i+1}{n+1},
 \qquad
-\Delta r&#95;i = \frac{2\xi\ x&#95;i}{(1-x&#95;i)^3(n+1)}.
+\Delta r_i = \frac{2\xi\ x_i}{(1-x_i)^3(n+1)}.
 $$
 
 The caller supplies the per-element scale $A(Z)$; a preset with molecular
@@ -159,9 +159,9 @@ rules that are useful for different constructions.
 | Gauss–Legendre $\times$ uniform $\varphi$ | `angular::product_angular_grid` | Product/polar rules |
 
 A size outside the supported set is rejected during validation.  For a
-product rule with $n&#95;\theta$ Gauss–Legendre rings and
-$2n&#95;\theta$ azimuthal points per ring, the normalized weight per point is
-$w&#95;\mathrm{GL}/(4 n&#95;\theta)$ in the crate's sum-to-one convention.
+product rule with $n_\theta$ Gauss–Legendre rings and
+$2n_\theta$ azimuthal points per ring, the normalized weight per point is
+$w_\mathrm{GL}/(4 n_\theta)$ in the crate's sum-to-one convention.
 
 ## 4. Angular pruning
 
@@ -191,7 +191,7 @@ The schemes are implemented in [`crate::prune`] (see
 ### 4.2 Five-batch ladder
 
 A [`crate::prune::LadderPrune`] maps $r/\xi$ to one of five sizes
-$(a&#95;1,a&#95;2,a&#95;3,a&#95;4,a&#95;3)$ using four row-specific boundaries;
+$(a_1,a_2,a_3,a_4,a_3)$ using four row-specific boundaries;
 the fifth batch steps back down.  The ladder, the unpruned fallback and the
 element-row boundaries are data supplied by the preset.  Elements above a
 configured `max_pruned_z` use the unpruned base or keep the ladder according
@@ -204,34 +204,34 @@ molecule. The partition assigns each point to its generating atom and
 renormalizes so that the fractions sum to one:
 
 $$
-\sum&#95;M P&#95;{M g} = 1,
+\sum_M P_{M g} = 1,
 \qquad
-P&#95;{M g} = \frac{\bar P&#95;{M g}}{Z&#95;g},
+P_{M g} = \frac{\bar P_{M g}}{Z_g},
 \qquad
-Z&#95;g = \sum&#95;N \bar P&#95;{N g}.
+Z_g = \sum_N \bar P_{N g}.
 $$
 
-The unnormalized cell functions $\bar P&#95;{M g}$ differ between schemes.
+The unnormalized cell functions $\bar P_{M g}$ differ between schemes.
 
 ### 5.1 Classic Becke
 
-With $\mu&#95;{AB} = (d&#95;A - d&#95;B)/R&#95;{AB}$ and the size adjustment
-$\nu&#95;{AB} = \mu&#95;{AB} + a&#95;{AB}(1-\mu&#95;{AB}^2)$,
+With $\mu_{AB} = (d_A - d_B)/R_{AB}$ and the size adjustment
+$\nu_{AB} = \mu_{AB} + a_{AB}(1-\mu_{AB}^2)$,
 
 $$
 p(x) = \frac{3}{2}x - \frac{1}{2}x^3,
 \qquad
 f(\nu) = p\circ p\circ p\ (\nu),
 \qquad
-s&#95;{AB} = \frac{1}{2}\left(1-f(\nu&#95;{AB})\right),
+s_{AB} = \frac{1}{2}\left(1-f(\nu_{AB})\right),
 $$
 
 $$
-\bar P&#95;A = \prod&#95;{B\ne A} s&#95;{AB}.
+\bar P_A = \prod_{B\ne A} s_{AB}.
 $$
 
-The adjustment factor $a&#95;{AB}$ comes from the radii table and the chosen
-`RadiiAdjust` policy; the implementations are in [`crate::partition`]. The normalized weights are $P&#95;A = \bar P&#95;A/Z$.
+The adjustment factor $a_{AB}$ comes from the radii table and the chosen
+`RadiiAdjust` policy; the implementations are in [`crate::partition`]. The normalized weights are $P_A = \bar P_A/Z$.
 
 ### 5.2 Stratmann–Scuseria–Frisch (SSF)
 
@@ -241,8 +241,8 @@ that is **exactly** $\pm1$ outside $|\nu| \le A = 0.64$:
 $$
 f(\nu) =
 \begin{cases}
-\dfrac{1}{16}\ m&#95;a\left(35 + m&#95;a^2\left(-35 + m&#95;a^2(21-5m&#95;a^2)\right)\right),
- & m&#95;a = \nu/A,\ |\nu| < A,\cr
+\dfrac{1}{16}\ m_a\left(35 + m_a^2\left(-35 + m_a^2(21-5m_a^2)\right)\right),
+ & m_a = \nu/A,\ |\nu| < A,\cr
 \operatorname{sign}(\nu), & |\nu| \ge A.
 \end{cases}
 $$
@@ -257,7 +257,7 @@ The SS variant keeps the same product but replaces the SSF switch by
 the degree-13 polynomial
 
 $$
-F_1(x)=\frac{3003}{2048}\,x\left(
+F_1(x)=\frac{3003}{2048}\thinspace x\left(
 1-2x^2+3x^4-\frac{20}{7}x^6+\frac{5}{3}x^8
 -\frac{6}{11}x^{10}+\frac{1}{13}x^{12}\right),
 \qquad x=\frac{\nu}{0.86},
@@ -281,18 +281,18 @@ exit. See [`crate::partition`] and the
 
 ### 5.5 LKO
 
-The Laqua–Kussmann–Ochsenfeld partition replaces $R&#95;{AB}$ by a saturating
+The Laqua–Kussmann–Ochsenfeld partition replaces $R_{AB}$ by a saturating
 length:
 
 $$
-\mathrm{sat}(r) = 5\left(1-\exp\left\lbrack -\sum&#95;{m=1}^{12}\frac{(r/5)^m}{m}\right\rbrack \right),
+\mathrm{sat}(r) = 5\left(1-\exp\left\lbrack -\sum_{m=1}^{12}\frac{(r/5)^m}{m}\right\rbrack \right),
 \qquad
-\mu&#95;{AB} = \frac{d&#95;A-d&#95;B}{\mathrm{sat}(R&#95;{AB})}.
+\mu_{AB} = \frac{d_A-d_B}{\mathrm{sat}(R_{AB})}.
 $$
 
 The clamped $\mu$ then enters the classic size adjustment and switch. Since
 $\mathrm{sat}(r) < 5$, atoms farther than a fixed cutoff cannot contribute
-nonzero factors; this is the basis of the $O(n&#95;\mathrm{atom})$ weight kernel.
+nonzero factors; this is the basis of the $O(n_\mathrm{atom})$ weight kernel.
 The gradient uses eight-point lanes (dense below the crossover, masked
 union-list above); the Hessian is pointwise, with a dense small-molecule
 kernel and a sparse near-set kernel above a size threshold (chosen
@@ -327,7 +327,7 @@ GridSpec -> GridPlan -> PartitionEvaluator -> BatchBuffer
   geometry-independent for PySCF and for presets without molecular
   cutoffs (the default) makes it geometry-dependent.
 * [`crate::partition::PartitionEvaluator`] fills only a requested point
-  range, so the crate never stores an $n&#95;\mathrm{atom}\times n&#95;\mathrm{grid}$
+  range, so the crate never stores an $n_\mathrm{atom}\times n_\mathrm{grid}$
   object.
 * [`crate::moleculegrid::MolecularGrid`] is the convenience full-grid
   output. Post-build pruning and ordering are explicit operations on it.

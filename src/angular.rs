@@ -3,7 +3,7 @@
 //! Weights use the canonical (PySCF) normalization: they **sum to one**.
 //! The $4\pi$ factor lives entirely in the radial weight
 //! ([`crate::radial::Radial::grid`], $4\pi r^2\ \Delta r$), so the product
-//! $w&#95;\mathrm{rad} w&#95;\mathrm{ang}$ is the volume element and the placement of
+//! $w_\mathrm{rad} w_\mathrm{ang}$ is the volume element and the placement of
 //! the constant is invisible to the integrator.
 //!
 //! The internal Oh-orbit generator is an Apache-2.0 rstsr adaptation and
@@ -141,10 +141,10 @@ fn legendre(n: usize, x: f64) -> (f64, f64) {
     (p1, dp)
 }
 
-/// Gauss–Legendre nodes $x&#95;i$ (descending) and weights on $(-1, 1)$ from
+/// Gauss–Legendre nodes $x_i$ (descending) and weights on $(-1, 1)$ from
 /// Newton iteration starting at
-/// $x&#95;0 = \cos((i\pi - \pi/4)/(n + 1/2))$, with
-/// $w&#95;i = 2(1-x&#95;i^2)/((n+1)^2 P&#95;{n+1}(x&#95;i)^2)$.
+/// $x_0 = \cos((i\pi - \pi/4)/(n + 1/2))$, with
+/// $w_i = 2(1-x_i^2)/((n+1)^2 P_{n+1}(x_i)^2)$.
 ///
 /// ```
 /// use ruaa_dft_grids::angular::gauss_legendre;
@@ -178,12 +178,12 @@ pub fn gauss_legendre(n: usize) -> (Vec<f64>, Vec<f64>) {
     (xs, ws)
 }
 
-/// Product angular grid of a numeric `-mmmnnn` construction: $n&#95;\theta$
-/// Gauss–Legendre $\theta$ rings, each with $2n&#95;\theta$ uniform $\varphi$
+/// Product angular grid of a numeric `-mmmnnn` construction: $n_\theta$
+/// Gauss–Legendre $\theta$ rings, each with $2n_\theta$ uniform $\varphi$
 /// points.  Weights sum to one.
 ///
 /// # Errors
-/// [`Error::UnsupportedGrid`] for $n&#95;\theta < 2$.
+/// [`Error::UnsupportedGrid`] for $n_\theta < 2$.
 ///
 /// ```
 /// use ruaa_dft_grids::angular::product_angular_grid;

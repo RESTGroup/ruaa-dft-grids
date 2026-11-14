@@ -145,7 +145,7 @@ PySCF level 3, partition evaluation only.
 * **Gradient, four selected rows:** the whole grid, 1024-point `fill`
   ranges.
 * **Gradient, all rows:** 50,000 points (a full grid would write a
-  $3n&#95;\mathrm{atom}\times n&#95;\mathrm{grid}$ array).
+  $3n_\mathrm{atom}\times n_\mathrm{grid}$ array).
 * **Hessian, four selected rows:** the whole grid, 4096-point ranges.
 
 mBecke derivatives use the classic Becke backend at the default clamp, so
@@ -198,7 +198,7 @@ numbers are the Becke column (the 168-atom entry is the pointwise path).
 The LKO Hessian is pointwise (no lane variant) and dispatches between a dense
 kernel below about 36 atoms and a sparse near-set kernel above it. The sparse
 kernel visits only $T\times T$ pairs, keeps one support row per survivor
-instead of the dense $3n&#95;\mathrm{atom}\times3n&#95;\mathrm{atom}$
+instead of the dense $3n_\mathrm{atom}\times3n_\mathrm{atom}$
 log-derivative table, skips pairs whose two cell products are exactly zero,
 and builds the summed-over-first-index correction only when the generating
 atom is selected. It is bitwise identical to the dense reference up to signed
@@ -209,7 +209,7 @@ grid). LKO overtakes classic Becke from about 31 atoms and remains about
 $2.3$–$3.5\times$ slower than the SSF sparse Hessian.
 
 The all-row Hessian is output-bound (a dense
-$3n&#95;\mathrm{atom}\times3n&#95;\mathrm{atom}$ block per point); the
+$3n_\mathrm{atom}\times3n_\mathrm{atom}$ block per point); the
 contracted `ddc` path and small selections are where the sparse structure
 pays off most.
 
@@ -264,14 +264,14 @@ calling `fill` in a loop.
 
 | Operation | Classic Becke | SSF | LKO | mBecke |
 |---|---|---|---|---|
-| weight, pair work | $O(n^2)$ | $O(n\log n + n&#95;\mathrm{surv} n)$ | $O(\lvert S\rvert\lvert T\rvert)$ | $O(n^2)$ |
+| weight, pair work | $O(n^2)$ | $O(n\log n + n_\mathrm{surv} n)$ | $O(\lvert S\rvert\lvert T\rvert)$ | $O(n^2)$ |
 | gradient | $O(n^2)$ per point | active pairs only | masked sparse lanes above the cut (dense lanes below) | classic backend |
 | Hessian | $O(n^3)$ cross term, $O(n^2)$ memory | sparse active-pair rows | pointwise; sparse near-set pairs above the cut | classic backend |
 | default small-molecule path | dense lanes | dense SSF lanes below the cut | dense LKO lanes / dense Hessian below the cut | exact nearest-first if needed |
 
 The $O(n^3)$ Becke Hessian is the rank-one cross term; the selected-row
 assembly avoids materialising all rows, so a small selection costs
-$O(n^2 + n&#95;\mathrm{sel} n^2)$ rather than $O(n^3)$ output.
+$O(n^2 + n_\mathrm{sel} n^2)$ rather than $O(n^3)$ output.
 
 ## 6. Reproducing a measurement
 

@@ -7,26 +7,26 @@
 //! # Weight outputs
 //!
 //! The three `radial_grid_*` functions return `(r, w)` with the `r^2`
-//! measure already included ($\sum&#95;i w&#95;i f(r&#95;i) \approx \int f(r) r^2 dr$). The
+//! measure already included ($\sum_i w_i f(r_i) \approx \int f(r) r^2 dr$). The
 //! PySCF `*_xi` functions return `(r, dr)`, exactly like `pyscf.dft.radi`;
 //! the caller forms either `4*pi*r^2*dr` or `r^2*dr`.
 //!
 //! # ORCA constructions
 //!
 //! The exact ORCA 6.1 "OptM3 with GC (2021)" construction is, for
-//! $i = 1,\ldots,n&#95;r$ and $\theta&#95;i = i\pi/(n&#95;r+1)$, with
-//! $s = \sin\theta&#95;i$ and $c = \cos\theta&#95;i$:
+//! $i = 1,\ldots,n_r$ and $\theta_i = i\pi/(n_r+1)$, with
+//! $s = \sin\theta_i$ and $c = \cos\theta_i$:
 //!
 //! $$
-//! t&#95;i = \frac{2i}{n&#95;r+1}
+//! t_i = \frac{2i}{n_r+1}
 //! \quad - s c\left(0.4244131815783876\ s^2 + \frac{2}{\pi}\right),
 //! $$
 //!
 //! $$
-//! r&#95;i = \frac{\xi}{\ln 2}\ln\frac{2}{t&#95;i},
+//! r_i = \frac{\xi}{\ln 2}\ln\frac{2}{t_i},
 //! \qquad
-//! w&#95;i = r&#95;i^2\ \frac{16\xi}{3}\
-//! \frac{s^4}{t&#95;i\ln 2\ (n&#95;r+1)}.
+//! w_i = r_i^2\ \frac{16\xi}{3}\
+//! \frac{s^4}{t_i\ln 2\ (n_r+1)}.
 //! $$
 //!
 //! ORCA stores the shells outside-in; we return ascending-r order.  The
@@ -49,11 +49,11 @@
 //! Gaussian 16:
 //!
 //! $$
-//! r&#95;i = \xi\left(\frac{i+1}{n&#95;\mathrm{rad}-i}\right)^2,
+//! r_i = \xi\left(\frac{i+1}{n_\mathrm{rad}-i}\right)^2,
 //! \qquad
-//! \Delta r&#95;i = \frac{2\xi\ x&#95;i}{(1-x&#95;i)^3(n&#95;\mathrm{rad}+1)},
+//! \Delta r_i = \frac{2\xi\ x_i}{(1-x_i)^3(n_\mathrm{rad}+1)},
 //! \qquad
-//! x&#95;i = \frac{i+1}{n&#95;\mathrm{rad}+1}.
+//! x_i = \frac{i+1}{n_\mathrm{rad}+1}.
 //! $$
 //!
 //! The scale is supplied by the caller.
@@ -237,11 +237,11 @@ pub(crate) fn mura_knowles_xi(n: usize, far: f64) -> (Vec<f64>, Vec<f64>) {
 /// PySCF `radi.gauss_chebyshev` (M3, PySCF's own mapping — deliberately not
 /// ORCA's `OptM3 with GC`) with a similarity scale.
 ///
-/// With $x&#95;i = i\pi/(n+1)$ and
-/// $\xi&#95;i = (n-1-2(i-1))/(n+1) + (1 + 2/3 \sin^2x&#95;i)\cdot \sin(2x&#95;i)/\pi$
-/// (symmetrized as $(\xi&#95;i - \xi&#95;{n+1-i})/2$), the mapping is
-/// $r&#95;i = scale\cdot(1 - \log&#95;2(1+\xi&#95;i))$ and
-/// $dr&#95;i = scale\cdot(16/(3(n+1)))\cdot \sin^4x&#95;i / ((1+\xi&#95;i)\cdot \ln 2)$.
+/// With $x_i = i\pi/(n+1)$ and
+/// $\xi_i = (n-1-2(i-1))/(n+1) + (1 + 2/3 \sin^2x_i)\cdot \sin(2x_i)/\pi$
+/// (symmetrized as $(\xi_i - \xi_{n+1-i})/2$), the mapping is
+/// $r_i = scale\cdot(1 - \log_2(1+\xi_i))$ and
+/// $dr_i = scale\cdot(16/(3(n+1)))\cdot \sin^4x_i / ((1+\xi_i)\cdot \ln 2)$.
 ///
 /// `scale = 1` reproduces PySCF exactly; other scales are a pure similarity
 /// transform of the nodes and the derivative.
@@ -297,15 +297,15 @@ fn pyscf_bragg(z: u32) -> Option<f64> {
 /// Gaussian 16 squared-ratio Euler–Maclaurin radial grid with scale $\xi$:
 ///
 /// $$
-/// q&#95;i = \frac{i+1}{n&#95;\mathrm{rad}-i},
+/// q_i = \frac{i+1}{n_\mathrm{rad}-i},
 /// \qquad
-/// r&#95;i = \xi q&#95;i^2,
+/// r_i = \xi q_i^2,
 /// $$
 ///
 /// $$
-/// x&#95;i = \frac{i+1}{n&#95;\mathrm{rad}+1},
+/// x_i = \frac{i+1}{n_\mathrm{rad}+1},
 /// \qquad
-/// \Delta r&#95;i = \frac{2\xi\ x&#95;i}{(1-x&#95;i)^3(n&#95;\mathrm{rad}+1)}.
+/// \Delta r_i = \frac{2\xi\ x_i}{(1-x_i)^3(n_\mathrm{rad}+1)}.
 /// $$
 ///
 /// Returns $(r, \Delta r)$ in ascending radius (the $4\pi r^2$ measure is

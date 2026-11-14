@@ -14,9 +14,10 @@
 //! | [`scheme_variants`] | SSF, SS, LKO and mBecke formula and cost differences |
 //! | [`performance`] | measured throughput and build-target guidance |
 
-// The Markdown sources write `_` inside math as `&#95;`: rustdoc parses
-// doc comments as Markdown before KaTeX sees them, and a bare pair of
-// underscores would otherwise split a formula into emphasis runs.
+// Markdown runs before KaTeX: an `_` that does not follow a letter or digit is
+// written `\_`; commands spelled as backslash + punctuation (`\,`, `\{`) use
+// named forms (`\thinspace`, `\lbrace`, `\cr`).  `tests/math_markdown.rs`
+// enforces both rules.
 
 pub mod algorithms {
     #![doc = include_str!("../../docs/algorithms.md")]

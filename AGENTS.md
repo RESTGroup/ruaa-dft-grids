@@ -22,6 +22,14 @@ this repository.
 - **No reverse-engineering traces**: Code may state a program's *behavior* factually ("ORCA 6.1 defaults to adaptive pruning", "ORCA orders radial nodes outside-in"), but tracked content must stay free of how that behavior was obtained: no "decoded"/"disassembly" narratives, binary addresses or offsets, internal symbol names, derivation or proof campaigns ("proved against N measured runs"), residual-investigation stories, or references to maintainer-local notes or reports. User-facing ORCA keywords (`AngularGrid`, `GridPruning`, `DEFGRID`, `COSX`, `SimpleGrid`, `IntAcc`, `HGridReduced`) are fine. PySCF is Apache-2.0 open source: citing its published functions and code is welcome. Detailed provenance and derivation notes live in the maintainer's local workspace; never paste them back into tracked files.
 - **No benchmark fragments in comments**: code comments and docstrings must not carry fragmented efficiency measurements — timings, measured crossover tables, host/CPU names, measured brackets behind tuning constants. Keep at most a one-line empirical rationale ("cut chosen empirically; a wrong call costs little"). Consolidated measurements belong in curated docs (`docs/` if published) or the local workspace benchmark notes. A curated `docs/` page embedded by `src/doc/mod.rs` is documentation, not a code docstring: the performance page may include host details and consolidated measurements when it states that the input geometries and harness are not bundled. Code-level docstrings remain subject to this rule.
 - **Code comments concise; docstrings scientific**: inline (non-docstring) comments should be concise and descriptive, 1–2 lines, at most 4 — code should explain itself. Docstrings are for API callers; as a scientific program, a docstring *may* be lengthy when it documents algorithms and formulas, but keep it organized (overview, construction, conventions, special cases) and free of reverse-engineering evidence, benchmark fragments, and refactor histories.
+- **Math in Markdown**: rustdoc parses doc comments and the embedded
+  `docs/*.md` pages as Markdown before KaTeX runs.  Inside `$...$` and
+  `$$...$$`, write a subscript underscore as `\_` when it does not immediately
+  follow an ASCII letter or digit (`\hat{\mathbf u}\_{AB}`, but `w_g`), and
+  never spell a LaTeX command as backslash plus ASCII punctuation (`\,`,
+  `\{`, `\\`) other than the `\_` above; use the named forms (`\thinspace`,
+  `\lbrace`, `\rbrace`, `\cr`, `\ast`).  `tests/math_markdown.rs` enforces
+  the rule.
 - **Keep validation claims neutral and brief**: statements like "checked
   against reference probes maintained outside this package" are welcome; the
   underlying evidence chains are not.  Do not claim bundled program goldens

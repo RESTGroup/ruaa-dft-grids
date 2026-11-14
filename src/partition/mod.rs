@@ -10,8 +10,8 @@
 //! Execution is split into three stages:
 //!
 //! 1. `PartitionTables::new` precomputes everything that depends only on
-//!    the molecule (per-atom radii, pair adjustment factors $a&#95;{AB}$, and
-//!    the interatomic distances $R&#95;{AB}$) once;
+//!    the molecule (per-atom radii, pair adjustment factors $a_{AB}$, and
+//!    the interatomic distances $R_{AB}$) once;
 //! 2. `PartitionConfig::center_weights_par` evaluates a whole atomic grid
 //!    in blocks with rayon, reusing one distance pass per point and bounded
 //!    per-worker scratch (the private `kernel` module);
@@ -57,7 +57,7 @@
 //! per-point kernels stay private to this module.
 //!
 //! Derivative API (streaming, selected rows, one fused run, no
-//! $n&#95;\mathrm{atom} \times n&#95;\mathrm{grid}$ object):
+//! $n_\mathrm{atom} \times n_\mathrm{grid}$ object):
 //!
 //! ```text
 //! let ev = PartitionDerivEvaluator::new(&centers, &charges, config, options)?;

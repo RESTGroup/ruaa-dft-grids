@@ -25,7 +25,7 @@
 //! There is a single weight convention: [`Radial::grid_xi`] / [`Radial::grid`]
 //! return the PySCF volume element $4\pi r^2\ \Delta r$, to be paired with the
 //! sum-to-one angular weights of [`crate::angular::angular_grid`].  The
-//! product $w&#95;\mathrm{rad} w&#95;\mathrm{ang}$ is the volume element, so the
+//! product $w_\mathrm{rad} w_\mathrm{ang}$ is the volume element, so the
 //! placement of $4\pi$ is invisible to the integrator.
 
 pub mod kernels;
@@ -66,7 +66,7 @@ pub enum Radial {
     /// The published plain Chebyshev M3 reference grid.
     OrcaM3,
     /// The Euler–Maclaurin squared-ratio map
-    /// $r&#95;i = \xi\left((i+1)/(n&#95;\mathrm{rad}-i)\right)^2$.
+    /// $r_i = \xi\left((i+1)/(n_\mathrm{rad}-i)\right)^2$.
     ///
     /// The scale is supplied by the caller; the crate has no per-element
     /// table for this map.
@@ -330,7 +330,7 @@ impl Radial {
 /// [`crate::atomgrid::AtomicGrid`] path.
 ///
 /// `radial_rd` returns `(r, dr)`; the default `grid_xi` forms the
-/// $4\pi r^2\,dr$ volume element. A map whose kernel returns `(r, r^2 dr)`
+/// $4\pi r^2\thinspace dr$ volume element. A map whose kernel returns `(r, r^2 dr)`
 /// directly must override `grid_xi` (the built-in ORCA maps do).
 pub trait RadialMap {
     /// Raw radial nodes and increments `(r_i, dr_i)` for an explicit scale
