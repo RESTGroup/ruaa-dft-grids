@@ -1,0 +1,47 @@
+[package]
+name = "ruaa-dft-grids"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.87"
+
+description = """Molecular DFT numerical-integration grids: Lebedev angular rules, radial quadratures, \
+pruning, and Becke/LKO partition weights with analytic gradients and Hessians. Built-in PySCF \
+level presets and a data-driven grid-preset API for caller-supplied constructions."""
+license = "Apache-2.0"
+readme = "README.md"
+documentation = "https://docs.rs/ruaa-dft-grids"
+repository = "https://github.com/RESTGroup/ruaa-dft-grids"
+homepage = "https://github.com/RESTGroup/ruaa-dft-grids"
+keywords = ["dft", "grid", "lebedev", "quantum-chemistry", "preset"]
+categories = ["science", "mathematics"]
+
+# Keep development-only material out of the published crate.  The crate ships
+# no external-program reference data; `agents/` is repository process material,
+# not library API.
+exclude = [
+    "AGENTS.md",
+    "AGENTS.local.md",
+    "CLAUDE.md",
+    "CLAUDE.local.md",
+    "/agents/",
+    "/.github/",
+    "/assets/_scratch/",
+    "/debug/",
+    "/target/",
+]
+
+[dependencies]
+rayon = "1.8"
+derive_builder = "0.20"
+lightweight-simd = "0.1.1"
+serde = { version = "1", features = ["derive", "rc"] }
+thiserror = "2.0"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]
+
+[workspace]
+members = []
+default-members = ["."]
+resolver = "3"

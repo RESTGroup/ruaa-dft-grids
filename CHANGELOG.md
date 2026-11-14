@@ -1,0 +1,81 @@
+# Changelog
+
+All notable user-visible changes are recorded here.  The crate version is
+still pre-1.0; breaking changes are allowed in minor releases and are called
+out explicitly.
+
+## 0.1.0 (unreleased)
+
+### Grid specification
+
+- The spec is now `GridSpec`: a topology plus a partition.  A topology is
+  either a data-driven `GridPreset`, the built-in `PyscfGridSpec`, or a
+  caller-assembled `AtomicGrid` set (`GridSpec::custom`).  The three
+  program-specific spec types (`OrcaGridSpec`, `PyscfGridSpec`,
+  `GaussianGridSpec` as a `GridSpec` variant) were replaced by this one
+  surface.
+- `GridPreset`/`ElementPreset`/`AngularLayout` supply shell counts, radial
+  scales, cutoffs, pruning policies and explicit per-shell angular sizes.
+  The types implement `serde`; the file form uses `[[element]]`, `[[range]]`
+  and `default` blocks.  A range supplies shared parameters for a contiguous
+  charge range, and element entries may override only the fields that differ
+  (the missing fields are inherited).  This keeps a full-periodic-table
+  preset compact.
+- `AngularLayout::ProductShells(Vec<usize>)` adds a per-shell adaptive-phi
+  Gauss–Legendre product rule (the construction used by ORCA `AngularGrid 0`
+  for H–Ne).
+- `build_molecular_grid` and `GridPlan::build` accept anything convertible
+  into `GridSpec`; `PyscfGridSpec::from_level` remains the short PySCF path.
+- `build_molecular_grid_from_atomic_grids` (or
+  `build_molecular_grid_from_plan` with `GridSpec::custom`) is the extension
+  point for caller-built atomic grids.
+
+### PySCF path
+
+- `pyscf::angular_count` resolves a PySCF `LEBEDEV_ORDER` key (for example
+  order `11` to 50 points) and the 0/1 trivial rule.  `PyscfGridSpec::atom_grid`
+  now accepts both a point count and an order key for `n_ang`.
+- `angular::angular_grid(1)` returns the trivial one-point rule (origin,
+  weight one), and `is_supported_size(1)` is true.  PySCF's own
+  `MakeAngularGrid(1)`/`gen_atomic_grids` path is not used as a reference for
+  this rule because PySCF 2.15 stores that grid as a one-dimensional array.
+
+### Removed program data
+
+- Removed the ORCA and Gaussian parameter tables, presets, goldens and
+  program-specific construction modules from the published crate.  They live
+  in the separate local preset workspace and are supplied to the crate as
+  `GridPreset` data.  This is a licensing/provenance decision: the core
+  crate distributes only the program-independent machinery, the PySCF
+  open-source tables and the mathematical rules.
+- Removed `OrcaGridSpec`, `GaussianGridSpec`, `GaussianGrid`,
+  `GaussianPreset`, `DefGrid`, `GridPruning`, `CosxGrid`, `W_CUT` and the
+  corresponding error variants/helpers.  Exact constructions are reproduced
+  by loading the preset data into `GridPreset` and applying a
+  caller-supplied partition/radii configuration.
+- The framework no longer defaults a partition from a program name.
+  `PartitionConfig::pyscf()`, `gaussian_ss()` and `gaussian_becke()` remain
+  as explicit constructors; the caller chooses one.
+
+### Numerical changes
+
+- Partition normalization is scale-free: the product sum is divided whenever
+  it is finite and non-zero, so a symmetric cage whose unnormalized products
+  are tiny now gets the uniform partition instead of a first-centre unit
+  mass.  The blocked, sparse and scalar kernels share the policy.
+- `GridPreset` pruning uses the exact per-shell `r/xi` ratios from the full
+  nominal shell generation; truncated (cutoff-limited) grids now classify
+  the retained shells correctly.
+- The Lebedev generator was replaced with the Apache-2.0
+  `rstsr-sci-traits` implementation; the point order and rule values are
+  unchanged.
+
+### Packaging
+
+- The PyO3 and C-ABI binding crates were moved out of the published crate
+  (archived in the local workspace).  The package now contains only the
+  core crate, its tests, examples and docs.
+- `NOTICE` now records the Apache-2.0 `rstsr` and PySCF attributions and
+  states that ORCA/Gaussian tables and probes are not part of the package.
+- `cargo test` is offline and self-contained; cross-code reference probes
+  are maintained outside the package.

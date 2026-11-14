@@ -1,0 +1,10 @@
+/target
+/assets/_scratch/
+__pycache__/
+.pytest_cache/
+/debug
+AGENTS.local.md
+CLAUDE.local.md
+.venv/
+dist/
+*.egg-info/
