@@ -618,9 +618,9 @@ cargo test --release --test partition_deriv -- --nocapture
 | `Stratmann` | either flag | **implemented**; the flag is a classic-ORCA-Becke truncation and is ignored by the SSF switch |
 | `GaussianSs` | either flag | **implemented**; the shared sparse active-pair kernel with the degree-13/0.86 switch |
 | `Lko` | — | **implemented**; dense/sparse gradient lane kernels + pointwise Hessian (dense below the crossover, sparse near-set above) |
-| `MBecke` | `mbecke_clamp >= 1.0` and `max|a_AB| <= 0.5` | **implemented** via the classic Becke backend (value paths agree to round-off) |
+| `MBecke` | `mbecke_clamp >= 1.0` and `max abs(a_AB) <= 0.5` | **implemented** via the classic Becke backend (value paths agree to round-off) |
 | `MBecke` | `mbecke_clamp < 1.0` | rejected; ORCA's clamp/nearest-atom branches are not differentiable |
-| `MBecke` | `max|a_AB| > 0.5` | rejected; ORCA's clamp can fire, so the classic product is not the mBecke value |
+| `MBecke` | `max abs(a_AB) > 0.5` | rejected; ORCA's clamp can fire, so the classic product is not the mBecke value |
 
 The value evaluator still supports every scheme; only the derivative
 evaluator is restricted.
