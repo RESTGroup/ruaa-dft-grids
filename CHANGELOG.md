@@ -119,6 +119,7 @@ out explicitly.
   core crate, its tests, examples and docs.
 - `NOTICE` now records the Apache-2.0 `rstsr` and PySCF attributions and
   states that ORCA/Gaussian tables and probes are not part of the package.
+  PySCF's notice is reproduced verbatim, including its closing notes.
 - `cargo test` is offline and self-contained.  Cross-code reference goldens
   are maintained outside the package; the optional PySCF cross-check in
   `examples/presets/` builds its reference at run time and is not part of the
