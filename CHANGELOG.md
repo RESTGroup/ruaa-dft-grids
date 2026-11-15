@@ -49,7 +49,10 @@ out explicitly.
   wider than the preset's own domain.  The crate adds `serde_json` for this
   caller-data format; it still ships no catalog or program data.
 - The preset and catalog file forms reject unknown keys at every level, so a
-  typo is an error instead of a silently ignored field.
+  typo is an error instead of a silently ignored field.  A preset file carries
+  `format = 1` (an absent field means 1; other versions are rejected), and
+  `GridPreset::validate` rejects a `[[range]]` block outside the preset's
+  element domain.
 
 ### PySCF path
 

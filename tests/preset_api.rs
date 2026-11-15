@@ -346,3 +346,53 @@ angular = { fixed = { n_ang = 50 } }
     assert_eq!(element.radial_scale.to_bits(), scale.to_bits());
     assert_eq!(element.cutoff.unwrap().to_bits(), cutoff.to_bits());
 }
+
+#[test]
+fn preset_file_format_is_versioned() {
+    let base = r#"
+format = 1
+radial = "treutler_ahlrichs"
+
+[default]
+n_rad = 20
+radial_scale = 0.9
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let preset: GridPreset = toml::from_str(base).unwrap();
+    let text = toml::to_string(&preset).unwrap();
+    assert!(text.contains("format = 1"), "{text}");
+
+    // An absent field is the version-1 file form.
+    let absent = base.replace("format = 1\n", "");
+    assert!(toml::from_str::<GridPreset>(&absent).is_ok());
+
+    // A future version is rejected instead of being read as different data.
+    let future = base.replace("format = 1", "format = 2");
+    let error = toml::from_str::<GridPreset>(&future)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("unsupported preset format 2"), "{error}");
+}
+
+#[test]
+fn a_range_outside_the_element_domain_is_rejected() {
+    let text = r#"
+z_min = 1
+z_max = 2
+radial = "delley"
+
+[[range]]
+z_min = 3
+z_max = 10
+n_rad = 20
+radial_scale = 0.9
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let preset: GridPreset = toml::from_str(text).unwrap();
+    assert!(matches!(
+        preset.validate(),
+        Err(Error::InvalidArgument {
+            argument: "preset default range outside the element domain"
+        })
+    ));
+}

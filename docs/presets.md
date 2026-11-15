@@ -175,6 +175,10 @@ top-level `element` array (shown above) or an `[[element]]` block; both
 spellings parse to the same `GridPreset`.  The partial entry is what keeps a
 full-periodic-table preset compact: seven ranges plus one scale per element.
 
+The file carries a `format` version: `format = 1` is the only accepted
+version (an absent field means 1), and the serializer always writes it.  An
+unknown key anywhere in the file is a deserialization error.
+
 Read the file with the `serde` format crate of your choice.  With
 `toml = "0.8"` in your own `Cargo.toml`:
 
@@ -320,6 +324,11 @@ does not carry a partition or radii choice.
   element entry omits them.  A partial entry cannot clear an inherited cutoff;
   split the range so that element is covered by a range without a cutoff, or
   use a preset that has no range cutoff.
+* An unsupported `format` version is a deserialization error; an absent field
+  means version 1.
+* A `[[range]]` block outside the preset's `z_min`/`z_max` domain is
+  `InvalidArgument` with argument `preset default range outside the element
+  domain`.
 
 ## 8. Catalog files
 

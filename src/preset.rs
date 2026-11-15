@@ -23,10 +23,13 @@
 //!
 //! # Preset files
 //!
-//! With the `serde` feature (always enabled by this crate) the preset types
-//! can be read with any `serde` format:
+//! The preset types implement `serde`, so they can be read with any `serde`
+//! format.  A file uses `[[range]]` blocks for shared parameters and
+//! `[[element]]` blocks (or one compact top-level `element = [...]` array)
+//! for the per-element values; unknown keys are rejected:
 //!
 //! ```toml
+//! format = 1
 //! name = "example"
 //! radial = "treutler_ahlrichs"
 //! molecular_cutoffs = false
@@ -36,16 +39,29 @@
 //! radial_scale = 1.2
 //! angular = { pruned = { base = 194, prune = "nwchem" } }
 //!
-//! [elements.8]
+//! [[range]]
+//! z_min = 3
+//! z_max = 10
+//! n_rad = 75
+//! radial_scale = 0.9
+//! angular = { shells = [50, 110, 194, 302] }
+//!
+//! [[element]]
+//! z = 8
 //! n_rad = 75
 //! radial_scale = 1.1
 //! cutoff = 12.0
 //! angular = { shells = [50, 110, 194, 302] }
 //! ```
 //!
-//! The exact file layout is the caller's: `ruaa_dft_grids` exposes the data
-//! types and their invariants, not a file-location convention.  Program
-//! presets use this format as ordinary caller data.
+//! An element entry may omit any field that its matching `[[range]]` block
+//! or the `[default]` block supplies.  The file carries a `format` version
+//! (version 1 is the only accepted one; an absent field means 1), so a
+//! future layout change can be rejected explicitly instead of being read as
+//! different preset data.  The exact file layout is the caller's:
+//! `ruaa_dft_grids` exposes the data types and their invariants, not a
+//! file-location convention.  Program presets use this format as ordinary
+//! caller data.
 //!
 //! # Generated grids
 //!
@@ -86,6 +102,10 @@ fn default_z_min() -> u32 {
 
 fn default_z_max() -> u32 {
     118
+}
+
+fn default_format() -> u32 {
+    1
 }
 
 fn is_default_z_min(value: &u32) -> bool {
@@ -454,6 +474,7 @@ pub struct ElementRangeEntry {
 
 #[derive(serde::Serialize)]
 struct GridPresetRepr {
+    format: u32,
     #[serde(default, skip_serializing_if = "is_empty_string")]
     name: String,
     #[serde(default = "default_z_min", skip_serializing_if = "is_default_z_min")]
@@ -548,6 +569,8 @@ struct ElementRangeWire {
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct GridPresetDe {
+    #[serde(default = "default_format")]
+    format: u32,
     #[serde(default)]
     name: String,
     #[serde(default = "default_z_min")]
@@ -571,6 +594,7 @@ impl serde::Serialize for GridPreset {
         serializer: S,
     ) -> std::result::Result<S::Ok, S::Error> {
         let repr = GridPresetRepr {
+            format: 1,
             name: self.name.clone(),
             z_min: self.z_min,
             z_max: self.z_max,
@@ -604,6 +628,12 @@ impl<'de> serde::Deserialize<'de> for GridPreset {
         deserializer: D,
     ) -> std::result::Result<Self, D::Error> {
         let repr = GridPresetDe::deserialize(deserializer)?;
+        if repr.format != 1 {
+            return Err(serde::de::Error::custom(format!(
+                "unsupported preset format {} (expected 1)",
+                repr.format
+            )));
+        }
         let mut defaults: Vec<ElementRangeDefault> = Vec::with_capacity(repr.defaults.len());
         for range in repr.defaults {
             let element = range.fields.merge(None).map_err(|missing| {
@@ -834,6 +864,11 @@ impl GridPreset {
             if range.z_min > range.z_max {
                 return Err(Error::InvalidArgument {
                     argument: "preset default range",
+                });
+            }
+            if range.z_min < self.z_min || range.z_max > self.z_max {
+                return Err(Error::InvalidArgument {
+                    argument: "preset default range outside the element domain",
                 });
             }
             range.element.validate()?;
