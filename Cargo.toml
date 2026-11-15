@@ -25,6 +25,7 @@ exclude = [
     "CLAUDE.local.md",
     "/agents/",
     "/.github/",
+    "/python/",
     "/assets/_scratch/",
     "/debug/",
     "/target/",

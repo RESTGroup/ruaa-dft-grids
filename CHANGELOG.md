@@ -53,6 +53,10 @@ out explicitly.
   `format = 1` (an absent field means 1; other versions are rejected), and
   `GridPreset::validate` rejects a `[[range]]` block outside the preset's
   element domain.
+- New `python/` tooling: a dependency-free reader/validator for preset and
+  catalog files that mirrors the Rust file form.  It is repository tooling,
+  not part of the published crate, and shares
+  `tests/data/pyscf-level-3-canonical.json` with `tests/preset_fixture.rs`.
 
 ### PySCF path
 
