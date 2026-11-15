@@ -47,8 +47,9 @@ jobs:
       - name: Package audit
         run: |
           set -euo pipefail
-          cargo package --list --locked > package-files.txt
-          if grep -Eq '^(agents/|\.github/|AGENTS|CLAUDE|.*\.local)' package-files.txt; then
+          package_list="$RUNNER_TEMP/package-files.txt"
+          cargo package --list --locked > "$package_list"
+          if grep -Eq '^(agents/|python/|\.github/|AGENTS|CLAUDE|.*\.local)' "$package_list"; then
             echo "repository-process material would be published" >&2
             exit 1
           fi
@@ -64,13 +65,13 @@ jobs:
             examples/presets/pyscf-level-3.toml \
             src/preset.rs \
             src/catalog.rs; do
-            if ! grep -qx "$required" package-files.txt; then
+            if ! grep -qx "$required" "$package_list"; then
               echo "required package file missing: $required" >&2
               exit 1
             fi
           done
-          test "$(wc -l < package-files.txt)" -gt 50
-          rm package-files.txt
+          test "$(wc -l < "$package_list")" -gt 50
+          rm -f "$package_list"
 
   python-preset:
     name: Python preset tooling
