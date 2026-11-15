@@ -26,8 +26,6 @@ exclude = [
     "/agents/",
     "/.github/",
     "/python/",
-    "/assets/_scratch/",
-    "/debug/",
     "/target/",
 ]
 

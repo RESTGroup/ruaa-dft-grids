@@ -1,5 +1,5 @@
-//! Regression coverage for the pre-publication review findings and for the
-//! generic preset path.
+//! Regression coverage for partition normalization, molecular-cutoff presets
+//! and the generic preset path.
 
 use ruaa_dft_grids::atomgrid::AtomicGrid;
 use ruaa_dft_grids::grid::{BatchBuffer, GridPlan, GridSpec, PyscfGridSpec};

@@ -118,8 +118,7 @@ out explicitly.
 
 ### Packaging
 
-- The PyO3 and C-ABI binding crates were moved out of the published crate
-  (archived in the local workspace).  The package now contains only the
+- The PyO3 and C-ABI binding crates were moved out of the published crate.  The package now contains only the
   core crate, its tests, examples and docs.
 - `NOTICE` now records the Apache-2.0 `rstsr` and PySCF attributions and
   states that ORCA/Gaussian tables and probes are not part of the package.

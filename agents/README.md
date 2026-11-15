@@ -2,8 +2,8 @@
 
 This directory is the repository home for operational knowledge that is not
 part of the library API, the user guide, or the numerical algorithm pages. The
-repository is developed inside a larger local workspace; only the repository is
-published, so process knowledge kept outside it would be lost.
+repository is the published part of a larger development setup, so process
+knowledge kept outside it would be lost.
 
 ## Read order
 

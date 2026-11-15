@@ -130,7 +130,7 @@ Reading the table:
   classic pair product. Its exact nearest-first kernel is $O(n^2)$ scalar
   work and is used only when the clamp is not inert.
 
-The sparse SSF kernel is also faster than the previous dense SSF
+The sparse SSF kernel is also faster than the dense SSF
 implementation; for valinomycin (168 atoms) the measured speedup was about
 $7.4\times$. The LKO screened kernel is bitwise identical to the per-point
 reference and the SSF dense/sparse paths agree to round-off.
@@ -202,7 +202,7 @@ instead of the dense $3n_\mathrm{atom}\times3n_\mathrm{atom}$
 log-derivative table, skips pairs whose two cell products are exactly zero,
 and builds the summed-over-first-index correction only when the generating
 atom is selected. It is bitwise identical to the dense reference up to signed
-zero. Relative to the previous dense LKO kernel the sparse path is about
+zero. Relative to the dense LKO kernel the sparse path is about
 $1.3$–$2.2\times$ faster on the 20–42-atom full grids and about
 $10\times$ faster per point at 168 atoms (33,385 → 3,202 ns/point on the full
 grid). LKO overtakes classic Becke from about 31 atoms and remains about

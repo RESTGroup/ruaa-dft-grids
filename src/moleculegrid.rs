@@ -329,7 +329,7 @@ impl MolecularGrid {
     /// original index.
     ///
     /// After a [`Self::split`], apply an order to each resulting grid
-    /// separately; the retained/pruned pair no longer shares one index space.
+    /// separately; the retained/pruned pair does not share one index space.
     ///
     /// # Errors
     /// [`Error::LengthMismatch`] if `order.len()` differs from [`Self::len`].
