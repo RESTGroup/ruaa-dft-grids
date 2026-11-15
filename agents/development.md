@@ -205,13 +205,12 @@ The recommended order is:
 1. **Before 0.1: small API hardening only.**
    * Audit public enums and add `#[non_exhaustive]` where future variants are
      expected. The backend, scheme, radial, pruning, radii, adjustment and
-     post-prune selectors are non-exhaustive. The C ABI returns
-     `UNSUPPORTED` (or `-1` for `spec_kind`) if it ever sees an unknown
-     backend.
+     post-prune selectors are non-exhaustive, and genuinely closed enums say
+     so in their documentation.
    * Remove or implement dead public variants instead of publishing them.
    * Keep the `Cargo.toml` package metadata and `exclude` list current.
-   * The validation-only probe lives in `tests/support/probe.rs` as test
-     support, not in the core library.
+   * The offline suite and the optional PySCF cross-check are the validation
+     surface; no validation tree is bundled in the crate.
 2. **After 0.1: mechanical splits when a file blocks work.**
    * `src/partition/mod.rs` now has the private `SchemeOps` seam but still
      mixes configuration, tables, evaluator, and tests; it can be split

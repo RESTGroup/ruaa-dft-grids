@@ -39,14 +39,16 @@
 //! [`GridPreset`].  The entry's `elements` range is authoritative: it is
 //! copied into the preset's [`GridPreset::z_min`] / [`GridPreset::z_max`]
 //! domain, so the catalog cannot accidentally apply a shared default block to
-//! an element outside the program's coverage.  A `"kind": "schedule"` entry is
-//! metadata (for example a response-grid schedule) and is not a
-//! [`GridPreset`]; loading it returns [`Error::UnsupportedGrid`].
+//! an element outside the program's coverage.  A narrower range drops element
+//! and range data outside it; a wider range is rejected.  A `"kind":
+//! "schedule"` entry is metadata (for example a response-grid schedule) and is
+//! not a [`GridPreset`]; loading it returns [`Error::UnsupportedGrid`].
 //!
 //! The catalog loader never embeds a path: the caller supplies the catalog
 //! path and the directory that the entry paths are relative to.  Entry paths
-//! must be relative and may not contain `..`, so a catalog cannot escape its
-//! data directory.  [`PresetCatalog::from_json_path`] validates the index
+//! must be relative and may not contain `..`; the canonical target, including
+//! symlinks, must stay under the data directory.
+//! [`PresetCatalog::from_json_path`] validates the index
 //! (unique names and paths, a valid element range on every grid entry);
 //! [`PresetCatalog::from_json_str`] parses only, so an embedded or partially
 //! built catalog can be inspected with [`PresetCatalog::validate`] separately.
@@ -302,6 +304,9 @@ impl PresetCatalog {
     }
 
     /// Every grid entry of one program.
+    ///
+    /// An unknown program yields an empty iterator; use [`Self::program`] when
+    /// the caller needs to distinguish a missing program from an empty one.
     pub fn grid_entries(&self, program: &str) -> impl Iterator<Item = &PresetEntry> {
         self.programs
             .get(program)
@@ -336,10 +341,11 @@ impl PresetEntry {
     ///
     /// # Errors
     /// [`Error::UnsupportedGrid`] for a non-grid entry, and [`Error::Catalog`]
-    /// for an I/O or parse failure, a preset name that differs from the
-    /// entry name, a catalog range that exceeds the preset's own domain, or
-    /// a failed preset validation (the message carries the file path and
-    /// entry name).
+    /// for an I/O or parse failure, an escaping path or symlink, a preset
+    /// name that differs from the entry name, a catalog range that exceeds
+    /// the preset's own domain, or a failed preset validation (the message
+    /// carries the file path and entry name).  A narrower catalog range
+    /// clips the preset's element and range data before validation.
     pub fn load(&self, base_dir: &Path) -> Result<GridPreset> {
         if !self.is_grid() {
             return Err(Error::UnsupportedGrid {
@@ -348,6 +354,7 @@ impl PresetEntry {
             });
         }
         let path = resolve_entry_path(base_dir, &self.file)?;
+        ensure_contained(base_dir, &path)?;
         let Some([z_min, z_max]) = self.elements else {
             return Err(Error::Catalog {
                 message: format!(
@@ -382,6 +389,10 @@ impl PresetEntry {
                 ),
             });
         }
+        // Check the file on its own terms before applying the catalog window.
+        preset.validate().map_err(|error| Error::Catalog {
+            message: format!("{}: preset `{}`: {error}", path.display(), self.name),
+        })?;
         // The catalog cannot widen the coverage the file itself declares:
         // that would silently apply the file's default block beyond its domain.
         if z_min < preset.z_min || z_max > preset.z_max {
@@ -393,6 +404,24 @@ impl PresetEntry {
                     preset.z_max
                 ),
             });
+        }
+        if z_min > preset.z_min || z_max < preset.z_max {
+            // A narrower catalog window is authoritative: drop the element and
+            // range data that falls outside it, then validate the restricted
+            // preset.  Clipping (rather than rejecting) lets one shared preset
+            // serve programs with different coverage.
+            preset.defaults = std::mem::take(&mut preset.defaults)
+                .into_iter()
+                .filter_map(|mut range| {
+                    if range.z_max < z_min || range.z_min > z_max {
+                        return None;
+                    }
+                    range.z_min = range.z_min.max(z_min);
+                    range.z_max = range.z_max.min(z_max);
+                    Some(range)
+                })
+                .collect();
+            preset.elements.retain(|z, _| (z_min..=z_max).contains(z));
         }
         preset.z_min = z_min;
         preset.z_max = z_max;
@@ -423,4 +452,25 @@ fn resolve_entry_path(base_dir: &Path, file: &str) -> Result<PathBuf> {
         });
     }
     Ok(base_dir.join(relative))
+}
+
+/// Reject a resolved path whose canonical target leaves `base_dir`.
+///
+/// `resolve_entry_path` is lexical; this check also covers symlinked files and
+/// directories.  A path that does not exist is left to the subsequent read,
+/// which reports the I/O error with the file name.
+fn ensure_contained(base_dir: &Path, path: &Path) -> Result<()> {
+    let (Ok(base), Ok(target)) = (base_dir.canonicalize(), path.canonicalize()) else {
+        return Ok(());
+    };
+    if target.starts_with(&base) {
+        return Ok(());
+    }
+    Err(Error::Catalog {
+        message: format!(
+            "{}: preset path escapes the data directory {}",
+            path.display(),
+            base.display()
+        ),
+    })
 }

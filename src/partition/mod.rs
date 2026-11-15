@@ -127,7 +127,7 @@ enum Scratch {
 /// This is the single registration point for a scheme's value kernel: add an
 /// implementation and one arm in [`ops_for`]. The evaluator, the point
 /// fallback and the blocked grid path all go through these methods, so a new
-/// scheme no longer edits every `match self.scheme` site.
+/// scheme has one value-kernel dispatch point.
 ///
 /// The cell-function switch stays on [`PartitionConfig::switch_value`] because
 /// it is called inside the pair loop; only the point/block kernels dispatch
@@ -680,8 +680,9 @@ impl PartitionConfig {
     /// size adjustment, matching Gaussian 16's default B weights.
     ///
     /// Gaussian's optional `IOp(79)` Becke cell cutoff is not modelled; the
-    /// default cutoff is inactive for the reference probes, but a user who
-    /// changes it must add the screening separately.
+    /// default cutoff is inactive in the reference checks maintained outside
+    /// this package, but a user who changes it must add the screening
+    /// separately.
     #[must_use]
     pub fn gaussian_becke() -> Self {
         Self::new(PartitionScheme::Becke, RadiiConfig::uniform())

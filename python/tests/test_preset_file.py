@@ -181,3 +181,126 @@ class CatalogTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_scalar_types_are_strict(self):
+        with self.assertRaisesRegex(presets.PresetError, "radial shell count"):
+            presets.loads(
+                'radial = "delley"\n[default]\nn_rad = -5\nradial_scale = 1.0\n'
+                'angular = { fixed = { n_ang = 50 } }\n',
+                format="toml",
+            )
+        with self.assertRaisesRegex(presets.PresetError, "boolean"):
+            presets.loads(
+                'radial = "delley"\nmolecular_cutoffs = "no"\n[default]\n'
+                'n_rad = 20\nradial_scale = 1.0\n'
+                'angular = { fixed = { n_ang = 50 } }\n',
+                format="toml",
+            )
+        with self.assertRaisesRegex(presets.PresetError, "boolean"):
+            presets.loads(
+                'radial = "delley"\n[default]\nn_rad = 20\nradial_scale = 1.0\n'
+                'generate_all = "false"\nangular = { fixed = { n_ang = 50 } }\n',
+                format="toml",
+            )
+        with self.assertRaisesRegex(presets.PresetError, "string"):
+            presets.loads(
+                'name = 123\nradial = "delley"\n[default]\nn_rad = 20\n'
+                'radial_scale = 1.0\nangular = { fixed = { n_ang = 50 } }\n',
+                format="toml",
+            )
+
+    def test_missing_angular_field_is_a_preset_error(self):
+        with self.assertRaisesRegex(presets.PresetError, "missing `n_ang`"):
+            presets.loads(
+                'radial = "delley"\n[default]\nn_rad = 20\nradial_scale = 1.0\n'
+                'angular = { fixed = {} }\n',
+                format="toml",
+            )
+
+
+class CatalogStrictnessTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        (self.root / "tiny.json").write_text(
+            json.dumps(TINY_PRESET), encoding="utf-8"
+        )
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def write_manifest(self, manifest: dict) -> Path:
+        path = self.root / "manifest.json"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        return path
+
+    def test_catalog_requires_a_format(self):
+        with self.assertRaisesRegex(presets.PresetError, "missing `format`"):
+            presets.Catalog.from_json_str('{"programs": {}}')
+
+    def test_unknown_kind_is_rejected(self):
+        manifest = tiny_manifest({"kind": "bogus"})
+        with self.assertRaisesRegex(presets.PresetError, "unknown kind"):
+            presets.load_catalog(self.write_manifest(manifest))
+
+    def test_ladder_defaults_match_rust(self):
+        preset = presets.loads(
+            'radial = "delley"\n[default]\nn_rad = 20\nradial_scale = 1.0\n'
+            'angular = { pruned = { base = 194, prune = { ladder = { '
+            'ladder = [50, 110, 194, 302, 434], unpruned = 434, '
+            'bounds = [[0.25,0.5,1.0,4.5],[0.1667,0.5,0.9,3.5],'
+            '[0.1,0.4,0.8,2.5],[0.02,0.1,0.2,3.5]] } } } }\n',
+            format="toml",
+        )
+        ladder = preset.default.angular["pruned"]["prune"]["ladder"]
+        self.assertEqual(ladder["max_pruned_z"], 36)
+        self.assertEqual(ladder["heavy_fallback"], "unpruned")
+
+    def test_narrowing_clips_file_data(self):
+        narrow = {
+            "format": 1,
+            "name": "narrow",
+            "z_min": 1,
+            "z_max": 4,
+            "radial": "delley",
+            "default": {
+                "n_rad": 20,
+                "radial_scale": 1.0,
+                "angular": {"fixed": {"n_ang": 50}},
+            },
+            "range": [
+                {
+                    "z_min": 1,
+                    "z_max": 4,
+                    "n_rad": 30,
+                    "radial_scale": 1.0,
+                    "angular": {"fixed": {"n_ang": 50}},
+                }
+            ],
+            "element": [
+                {"z": 1, "radial_scale": 1.1},
+                {"z": 4, "radial_scale": 1.4},
+            ],
+        }
+        (self.root / "narrow.json").write_text(json.dumps(narrow), encoding="utf-8")
+        manifest = tiny_manifest(
+            {"file": "narrow.json", "name": "narrow", "elements": [2, 3]}
+        )
+        catalog = presets.load_catalog(self.write_manifest(manifest))
+        preset = catalog.load("demo", "narrow", self.root)
+        self.assertEqual((preset.z_min, preset.z_max), (2, 3))
+        self.assertEqual([(lo, hi) for lo, hi, _ in preset.ranges], [(2, 3)])
+        self.assertEqual(sorted(preset.elements), [])
+        self.assertEqual(preset.element(2).n_rad, 30)
+
+    @unittest.skipUnless(hasattr(__import__("os"), "symlink"), "symlink unsupported")
+    def test_symlink_escape_is_rejected(self):
+        import os
+
+        outside = self.root.parent / "outside.json"
+        outside.write_text(json.dumps(TINY_PRESET), encoding="utf-8")
+        os.symlink(outside, self.root / "link.json")
+        manifest = tiny_manifest({"file": "link.json"})
+        catalog = presets.load_catalog(self.write_manifest(manifest))
+        with self.assertRaisesRegex(presets.PresetError, "escapes the data directory"):
+            catalog.load("demo", "tiny", self.root)

@@ -196,9 +196,10 @@ fn main() -> ruaa_dft_grids::Result<()> {
 }
 ```
 
-The core crate ships no file loader and no file-location convention; the data
-types and their invariants are the API.  Writing a preset back with `serde`
-emits `[[element]]` blocks with complete entries.  That is the canonical
+The single-preset type has no file loader and no file-location convention; the
+data types and their invariants are its API.  The optional `catalog` module in
+§8 loads a JSON index and its referenced JSON preset files.  Writing a preset
+back with `serde` emits `[[element]]` blocks with complete entries.  That is the canonical
 output form and valid input; the committed file uses the more compact array
 input form.  `tests/preset_api.rs` checks the TOML round trip (block form),
 the inheritance order, and that the committed file (array form) equals the
@@ -372,11 +373,13 @@ fails to load.  Unknown keys in the catalog are rejected.
 `PresetEntry::load(base_dir)` reads the referenced `GridPreset`.  Validation
 requires unique preset names and file paths within a program and a valid
 element range on every grid entry.  The loader resolves `file` relative to
-`base_dir`, rejects absolute paths and `..`, requires the preset's `name` to
-match the entry, and applies the entry's `elements` range to the preset's
-`z_min`/`z_max` domain.  The catalog range must stay inside the domain the
-file itself declares (a wider range is an error, not an implicit widening).
-Errors after a load name the file path and the entry.  A
+`base_dir`, rejects absolute paths and `..`, checks the canonical target (so a
+symlink cannot leave `base_dir`), requires the preset's `name` to match the
+entry, and applies the entry's `elements` range to the preset's `z_min`/`z_max`
+domain.  The catalog range must stay inside the domain the file itself declares
+(a wider range is an error, not an implicit widening).  A narrower range is
+honored: element and range data outside it is dropped before the restricted
+preset is validated.  Errors after a load name the file path and the entry.  A
 `"kind": "schedule"` entry is metadata, not a grid; loading it returns
 `UnsupportedGrid`.
 

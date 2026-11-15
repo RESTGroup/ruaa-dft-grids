@@ -272,8 +272,8 @@ mod tests {
     }
 
     #[test]
-    fn gaussian_formula_matches_g16_polynomial() {
-        // The G16 cell value P = 1/2 (1 - f), including the asymmetric clips.
+    fn gaussian_formula_matches_published_polynomial() {
+        // The published SSWeights cell value P = 1/2 (1 - f), including clips.
         for mu in [-0.95, -0.86, -0.5, 0.0, 0.5, 0.84, 0.852, 0.9] {
             let p = 0.5 * (1.0 - GaussianSsSwitch::switch(mu));
             let want = if mu <= -0.86 {
@@ -291,31 +291,6 @@ mod tests {
                 0.5 - f1
             };
             assert!((p - want).abs() < 1e-15, "mu={mu}: {p} vs {want}");
-        }
-    }
-
-    #[test]
-    #[allow(clippy::excessive_precision)]
-    fn gaussian_switch_matches_g16_reference_fractions() {
-        // G16 SSWeights fractions for HeH at 2 Bohr; P = 1/2 (1 - f).
-        let reference = [
-            (-7.99984179819483554e-01, 9.99999910260342961e-01),
-            (-5.99668895688807879e-01, 9.98660936653782305e-01),
-            (-3.01649463753965730e-01, 9.08570226132438097e-01),
-            (2.25955970031144204e-03, 4.96147481321425221e-01),
-            (1.99447994564681652e-01, 1.93714911726396072e-01),
-            (4.50106017493790755e-01, 1.87385979354260934e-02),
-            (5.99672931420137334e-01, 1.33893677538121604e-03),
-            (7.46706328245057893e-01, 6.47090637745373258e-06),
-            (8.30147985874877481e-01, 7.42647277007790556e-10),
-            (8.47463135143079249e-01, 0.0),
-        ];
-        for (mu, want) in reference {
-            let got = 0.5 * (1.0 - GaussianSsSwitch::switch(mu));
-            assert!(
-                (got - want).abs() < 3e-10,
-                "mu={mu}: crate {got:.12e} vs G16 {want:.12e}"
-            );
         }
     }
 

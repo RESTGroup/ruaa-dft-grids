@@ -10,13 +10,15 @@ construction and the public API; they are offline and self-contained.
 | [`error_api.rs`](error_api.rs) | typed errors on the construction path |
 | [`grid_coverage.rs`](grid_coverage.rs) | every radial map, angular layout, pruning and partition scheme through the public API |
 | [`grid_deriv.rs`](grid_deriv.rs) | grid-native partition derivatives |
+| [`math_markdown.rs`](math_markdown.rs) | Markdown/LaTeX rules in the docs and doc comments |
 | [`order_api.rs`](order_api.rs) | permutations and ordering invariants |
 | [`p1_regressions.rs`](p1_regressions.rs) | normalization at a symmetric cage, molecular-cutoff presets, custom atomic grids |
 | [`partition_deriv.rs`](partition_deriv.rs) | analytic Becke/SSF/SS/LKO/mBecke gradients and Hessians against finite differences |
 | [`partition_weights.rs`](partition_weights.rs) | partition weights at caller-supplied points and the table path |
 | [`post_prune.rs`](post_prune.rs) | `PostPrune` policies and retained/pruned splits |
-| [`preset_api.rs`](preset_api.rs) | PySCF level 3 as a `GridPreset`, the committed preset file, inheritance order, topology errors |
-| [`preset_catalog.rs`](preset_catalog.rs) | the JSON preset catalog, element-domain enforcement, path safety, and an optional `RUAA_PRESET_DATA` external check |
+| [`preset_api.rs`](preset_api.rs) | PySCF level 3 as a `GridPreset`, the committed preset file, inheritance order, JSON/TOML strictness and topology errors |
+| [`preset_catalog.rs`](preset_catalog.rs) | the JSON preset catalog, element-domain enforcement, range narrowing, path/symlink safety, and an optional `RUAA_PRESET_DATA` external check |
+| [`preset_fixture.rs`](preset_fixture.rs) | the canonical preset mapping shared with the Python tooling |
 | [`user_workflows.rs`](user_workflows.rs) | consumer workflows: PySCF and data-driven presets -> `MolecularGrid`, weight derivatives, sorting, prune/sort/derive; mirrors [`../docs/user-guide.md`](../docs/user-guide.md) |
 
 The unit tests in `src/` cover the radial kernels, angular rules, pruning

@@ -43,20 +43,34 @@ and each break is called out explicitly.
   loader is data-free: `PresetCatalog::from_json_path` parses and validates
   the index, `from_json_str` parses only, and `PresetEntry::load` reads one
   referenced JSON `GridPreset` and applies the entry's `elements` range.
-  Entry paths must be relative and may not contain `..`; names and paths must
-  be unique and every grid entry must carry an element range.  The loader
-  refuses a preset whose name differs from the entry and a catalog range
-  wider than the preset's own domain.  The crate adds `serde_json` for this
-  caller-data format; it still ships no catalog or program data.
+  Entry paths must be relative and may not contain `..`; the canonical target
+  must stay under the data directory, names and paths must be unique, and
+  every grid entry must carry an element range.  The loader refuses a preset
+  whose name differs from the entry and a catalog range wider than the
+  preset's own domain; a narrower range drops element and range data outside
+  it before validation.  The crate adds `serde_json` for this caller-data
+  format; it still ships no catalog or program data.
 - The preset and catalog file forms reject unknown keys at every level, so a
   typo is an error instead of a silently ignored field.  A preset file carries
   `format = 1` (an absent field means 1; other versions are rejected), and
   `GridPreset::validate` rejects a `[[range]]` block outside the preset's
   element domain.
+- The internal serde helpers `ElementEntry`/`ElementRangeEntry` are no longer
+  re-exported; `GridPreset` is the public file-form type.
 - New `python/` tooling: a dependency-free reader/validator for preset and
-  catalog files that mirrors the Rust file form.  It is repository tooling,
-  not part of the published crate, and shares
-  `tests/data/pyscf-level-3-canonical.json` with `tests/preset_fixture.rs`.
+  catalog files that mirrors the Rust file form, including the scalar types,
+  the required catalog `format`, the known `kind` set, range narrowing and
+  symlink containment.  It is repository tooling, not part of the published
+  crate, and shares `tests/data/pyscf-level-3-canonical.json` with
+  `tests/preset_fixture.rs`.
+
+### API
+
+- Removed the unused `Error::InvalidPeriodicRow` and
+  `Error::UnsupportedCosxGrid` variants.  `Error::InvalidArgument` now renders
+  as `invalid <argument>` so structural errors do not claim a numeric range.
+- `HessianBackend` is `#[non_exhaustive]`; `RadialScale` and `DerivPoints` are
+  documented as closed enums.
 
 ### PySCF path
 
@@ -71,11 +85,13 @@ and each break is called out explicitly.
 ### Removed program data
 
 - Removed the ORCA and Gaussian parameter tables, presets, goldens and
-  program-specific construction modules from the published crate.  They live
-  in the separate local preset workspace and are supplied to the crate as
-  `GridPreset` data.  This is a licensing/provenance decision: the core
-  crate distributes only the program-independent machinery, the PySCF
-  open-source tables and the mathematical rules.
+  program-specific construction modules from the published crate.  Program
+  constructions are supplied to the crate as `GridPreset` data.  This is a
+  licensing/provenance decision: the core crate distributes only the
+  program-independent machinery, the PySCF open-source tables and the
+  mathematical rules.
+- Removed the remaining Gaussian 16 reference-fraction unit-test table; the
+  published SS switch is covered by its formula test.
 - Removed `OrcaGridSpec`, `GaussianGridSpec`, `GaussianGrid`,
   `GaussianPreset`, `DefGrid`, `GridPruning`, `CosxGrid`, `W_CUT` and the
   corresponding error variants/helpers.  Exact constructions are reproduced

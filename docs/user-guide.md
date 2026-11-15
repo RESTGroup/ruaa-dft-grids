@@ -164,9 +164,10 @@ angular = { shells = [50, 110, 194, 302] }
 
 An explicit element entry wins over a matching `range`, which wins over
 `default`; partial entries inherit the remaining fields.  Read the file with
-the `serde`/TOML/JSON stack of your choice.  The core crate does not
-ship a file loader or a file-location convention; the data types and their
-invariants are the API.  A preset that sets
+the `serde`/TOML/JSON stack of your choice.  The single-preset type has no file
+loader or file-location convention; the data types and their invariants are
+its API.  The optional `catalog` module loads a JSON index and its referenced
+JSON preset files.  A preset that sets
 `molecular_cutoffs = true` extends each atom's cutoff by the pairwise rule
 
 $$
@@ -389,7 +390,7 @@ atom-contiguous runs.  The derivative evaluator is point-order agnostic, so a
 sorted grid derives correctly in its current order.
 
 After `MolecularGrid::split`, apply an order to each resulting grid
-separately; the retained/pruned pair no longer shares one index space.
+separately; the retained and pruned grids each have their own index space.
 
 ## 5. Post-build point selection
 

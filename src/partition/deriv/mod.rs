@@ -115,7 +115,11 @@ type PointChunk = (
 type HessianVisitor<'v> = Option<&'v mut dyn FnMut(usize, &[f64])>;
 
 /// Hessian kernel selection for the built-in Becke backend.
+///
+/// Future accelerator/backend selections may be added; downstream code must
+/// include a wildcard arm.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HessianBackend {
     /// Use the automatic size/ISA gate.
     #[default]
@@ -175,6 +179,9 @@ pub struct PartitionDerivEvaluator {
 /// A [`GridPlan`] range is evaluated from local coordinates and the plan's
 /// parent atoms; a [`MolecularGrid`] range is evaluated from its global point
 /// store, so post-pruned and reordered grids need no special handling.
+///
+/// The enum is closed: a point source is either a plan range or a
+/// materialised-grid range.
 #[derive(Debug, Clone)]
 pub enum DerivPoints<'g> {
     /// A global range of a plan.

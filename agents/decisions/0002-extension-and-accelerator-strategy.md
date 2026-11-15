@@ -77,3 +77,9 @@ the target hardware, precision, and transfer model are not decided.
 * Whether the public `params` tables should become accessor-only.
 * Whether `rayon` and `lightweight-simd` should become optional features.
 * When the consumer-facing API is frozen.
+
+## Status update 2026-11-15
+
+The C ABI and binding crates are not part of the current package (decision
+0004); a future binding ABI would need its own unknown-variant handling.  The
+backend boundary remains deferred until a working accelerator justifies it.

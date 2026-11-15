@@ -80,6 +80,9 @@ pub enum Radial {
 /// [`RadialScale::Xi`] is used verbatim.  [`Radial::grid`] takes the enum
 /// explicitly; [`Radial::grid_for_element`] is the element-preset shorthand.
 ///
+/// The enum is closed: the scale is either an element lookup or an explicit
+/// value; new radial maps use [`Radial`], not this input type.
+///
 /// ```
 /// use ruaa_dft_grids::radial::{Radial, RadialScale};
 ///

@@ -24,7 +24,8 @@ stay outside the tracked tree.
 * Formulas, parameter values, keywords, and data tables that may be
   redistributed.
 * Neutral validation claims that point at the checked-in references, such as
-  "validated against the bundled ORCA 6.1.1 reference probes".
+  "validated against the bundled PySCF level-3 tables", or at a reference
+  construction maintained outside the package.
 * PySCF and other open-source citations, including function and module names.
 
 ## What is not allowed

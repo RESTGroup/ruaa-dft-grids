@@ -13,8 +13,8 @@
 //! and on the ORCA early-exit flag, so the common PySCF path has neither a scheme match
 //! nor an early-exit branch inside the point loop.  The arithmetic sequence is
 //! unchanged: the hardness-3 specialisation is the same three composition
-//! layers, and the non-early path multiplies each pair factor directly.
-//! `tests/orca_bitwise.rs` guards the result bit-for-bit.
+//! layers, and the non-early path multiplies each pair factor directly.  The
+//! `lane_block_matches_point_kernel_bitwise` test guards the result bit-for-bit.
 
 use crate::partition::kernel::{self, LaneScratch, finish_center_lane, init_lane_block};
 use crate::partition::simd;

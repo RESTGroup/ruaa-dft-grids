@@ -103,6 +103,7 @@ The current tree passes the local Rust and Python gates (`cargo fmt --check`,
 `cargo doc --no-deps`, and `python -m unittest discover -s python/tests`).
 The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs
 core, Python-preset-tooling, MSRV 1.87, package verification and a manual
-publish dry-run.  The repository URL is not yet live, and the publishable
-history was replaced by a fresh initial import; the remaining release gates are
-in [`decisions/0003-release-gates.md`](decisions/0003-release-gates.md).
+publish dry-run.  The repository is private; making it publicly reachable,
+tagging the release and recording human approval are maintainer actions.  The
+remaining release gates are in
+[`decisions/0003-release-gates.md`](decisions/0003-release-gates.md).

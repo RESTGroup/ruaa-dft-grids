@@ -13,7 +13,6 @@ first.
 
 ```bash
 cargo test
-cargo test --test orca_bitwise
 ```
 
 Do not benchmark a change that has not passed the correctness suite. If the

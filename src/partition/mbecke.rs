@@ -57,7 +57,8 @@ pub const MBECKE_ACC_EPS: f64 = 1e-16;
 
 /// "mBecke (2022)" cell functions of ALL centers at one grid point.
 ///
-/// Matches the ORCA 6.1.1 reference grids.
+/// Implements the ORCA 6.1 mBecke construction with its published clamp and
+/// nearest-atom-first ordering.
 ///
 /// Algorithm:
 /// 1. distances `d_i`, sorted ascending (atoms processed nearest-first);

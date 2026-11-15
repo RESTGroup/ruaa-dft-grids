@@ -86,6 +86,18 @@ def _float(value: Any, where: str) -> float:
     return float(value)
 
 
+def _bool(value: Any, where: str) -> bool:
+    if not isinstance(value, bool):
+        raise PresetError(f"{where}: expected a boolean, got {value!r}")
+    return value
+
+
+def _required(mapping: dict[str, Any], key: str, where: str) -> Any:
+    if key not in mapping:
+        raise PresetError(f"{where}: missing `{key}`")
+    return mapping[key]
+
+
 def _parse_prune(value: Any, where: str) -> Any:
     if isinstance(value, str):
         if value not in PRUNE:
@@ -94,16 +106,18 @@ def _parse_prune(value: Any, where: str) -> Any:
     if not isinstance(value, dict):
         raise PresetError(f"{where}: prune must be a string or a ladder object")
     _reject_unknown(value, {"ladder"}, where)
-    ladder = value["ladder"]
+    ladder = _required(value, "ladder", where)
+    if not isinstance(ladder, dict):
+        raise PresetError(f"{where}.ladder: expected an object")
     _reject_unknown(
         ladder,
         {"ladder", "unpruned", "bounds", "max_pruned_z", "heavy_fallback"},
         f"{where}.ladder",
     )
-    sizes = ladder["ladder"]
+    sizes = _required(ladder, "ladder", f"{where}.ladder")
     if not isinstance(sizes, list) or len(sizes) != 5:
         raise PresetError(f"{where}.ladder.ladder: expected five sizes")
-    bounds = ladder["bounds"]
+    bounds = _required(ladder, "bounds", f"{where}.ladder")
     if not isinstance(bounds, list) or len(bounds) != 4:
         raise PresetError(f"{where}.ladder.bounds: expected four rows")
     for row in bounds:
@@ -112,14 +126,20 @@ def _parse_prune(value: Any, where: str) -> Any:
     fallback = ladder.get("heavy_fallback", "unpruned")
     if fallback not in HEAVY_FALLBACK:
         raise PresetError(f"{where}.ladder.heavy_fallback: unknown {fallback!r}")
+    max_pruned_z = _int(
+        ladder.get("max_pruned_z", 36), f"{where}.ladder.max_pruned_z"
+    )
+    if max_pruned_z < 0:
+        raise PresetError(f"{where}.ladder.max_pruned_z: expected a non-negative integer")
     return {
         "ladder": {
             "ladder": [_int(v, f"{where}.ladder.ladder") for v in sizes],
-            "unpruned": _int(ladder["unpruned"], f"{where}.ladder.unpruned"),
-            "bounds": [[_float(v, f"{where}.ladder.bounds") for v in row] for row in bounds],
-            "max_pruned_z": _int(
-                ladder.get("max_pruned_z", 36), f"{where}.ladder.max_pruned_z"
+            "unpruned": _int(
+                _required(ladder, "unpruned", f"{where}.ladder"),
+                f"{where}.ladder.unpruned",
             ),
+            "bounds": [[_float(v, f"{where}.ladder.bounds") for v in row] for row in bounds],
+            "max_pruned_z": max_pruned_z,
             "heavy_fallback": fallback,
         }
     }
@@ -129,15 +149,30 @@ def _parse_angular(value: Any, where: str) -> dict[str, Any]:
     if not isinstance(value, dict) or len(value) != 1:
         raise PresetError(f"{where}: angular must be a one-key object")
     (kind, body), = value.items()
+    if kind in {"fixed", "pruned", "product"} and not isinstance(body, dict):
+        raise PresetError(f"{where}.{kind}: expected an object")
     if kind == "fixed":
         _reject_unknown(body, {"n_ang"}, f"{where}.fixed")
-        return {"fixed": {"n_ang": _int(body["n_ang"], f"{where}.fixed.n_ang")}}
+        return {
+            "fixed": {
+                "n_ang": _int(
+                    _required(body, "n_ang", f"{where}.fixed"),
+                    f"{where}.fixed.n_ang",
+                )
+            }
+        }
     if kind == "pruned":
         _reject_unknown(body, {"base", "prune"}, f"{where}.pruned")
         return {
             "pruned": {
-                "base": _int(body["base"], f"{where}.pruned.base"),
-                "prune": _parse_prune(body["prune"], f"{where}.pruned.prune"),
+                "base": _int(
+                    _required(body, "base", f"{where}.pruned"),
+                    f"{where}.pruned.base",
+                ),
+                "prune": _parse_prune(
+                    _required(body, "prune", f"{where}.pruned"),
+                    f"{where}.pruned.prune",
+                ),
             }
         }
     if kind == "shells":
@@ -146,7 +181,14 @@ def _parse_angular(value: Any, where: str) -> dict[str, Any]:
         return {"shells": [_int(v, f"{where}.shells") for v in body]}
     if kind == "product":
         _reject_unknown(body, {"theta"}, f"{where}.product")
-        return {"product": {"theta": _int(body["theta"], f"{where}.product.theta")}}
+        return {
+            "product": {
+                "theta": _int(
+                    _required(body, "theta", f"{where}.product"),
+                    f"{where}.product.theta",
+                )
+            }
+        }
     if kind == "product_shells":
         if not isinstance(body, list):
             raise PresetError(f"{where}: product_shells must be an array")
@@ -206,7 +248,7 @@ class Element:
         return out
 
     def validate(self, where: str) -> None:
-        if self.n_rad == 0:
+        if self.n_rad <= 0:
             raise PresetError(f"{where}: radial shell count must be positive")
         if not math.isfinite(self.radial_scale) or self.radial_scale <= 0:
             raise PresetError(f"{where}: radial scale must be finite and positive")
@@ -269,7 +311,7 @@ class Preset:
         return out
 
     def validate(self) -> None:
-        if self.z_min == 0 or self.z_min > self.z_max or self.z_max > 118:
+        if self.z_min <= 0 or self.z_min > self.z_max or self.z_max > 118:
             raise PresetError("preset element range")
         for z in self.elements:
             if not 1 <= z <= 118:
@@ -333,7 +375,7 @@ def _parse_element(body: dict[str, Any], where: str, base: Element | None) -> El
                 if body.get("cutoff") is not None
                 else None
             ),
-            generate_all=bool(body.get("generate_all", True)),
+            generate_all=_bool(body.get("generate_all", True), f"{where}.generate_all"),
             angular=_parse_angular(angular, f"{where}.angular"),
         )
     return Element(
@@ -349,7 +391,7 @@ def _parse_element(body: dict[str, Any], where: str, base: Element | None) -> El
             else base.cutoff
         ),
         generate_all=(
-            bool(body["generate_all"])
+            _bool(body["generate_all"], f"{where}.generate_all")
             if body.get("generate_all") is not None
             else base.generate_all
         ),
@@ -411,12 +453,17 @@ def from_mapping(data: dict[str, Any]) -> Preset:
         if z in elements:
             raise PresetError(f"duplicate element Z = {z} in preset")
         elements[z] = element
+    name = data.get("name", "")
+    if not isinstance(name, str):
+        raise PresetError(f"preset.name: expected a string, got {name!r}")
     preset = Preset(
-        name=data.get("name", ""),
+        name=name,
         z_min=_int(data.get("z_min", 1), "preset.z_min"),
         z_max=_int(data.get("z_max", 118), "preset.z_max"),
         radial=radial,
-        molecular_cutoffs=bool(data.get("molecular_cutoffs", False)),
+        molecular_cutoffs=_bool(
+            data.get("molecular_cutoffs", False), "preset.molecular_cutoffs"
+        ),
         default=default,
         ranges=ranges,
         elements=elements,
@@ -477,7 +524,9 @@ class Catalog:
     def from_json_str(cls, text: str) -> "Catalog":
         data = json.loads(text)
         _reject_unknown(data, {"format", "description", "programs"}, "catalog")
-        if _int(data.get("format", FORMAT), "catalog.format") != FORMAT:
+        if "format" not in data:
+            raise PresetError("catalog is missing `format`")
+        if _int(data["format"], "catalog.format") != FORMAT:
             raise PresetError(f"unsupported catalog format (expected {FORMAT})")
         programs = data.get("programs")
         if not isinstance(programs, dict):
@@ -531,7 +580,10 @@ class Catalog:
                 if rel in files:
                     raise PresetError(f"program `{program}`: preset `{name}` reuses file `{rel}`")
                 files.add(rel)
-                if entry.get("kind", "grid") == "grid":
+                kind = entry.get("kind", "grid")
+                if kind not in {"grid", "schedule"}:
+                    raise PresetError(f"{where}: unknown kind {kind!r}")
+                if kind == "grid":
                     elements = entry.get("elements")
                     if (
                         not isinstance(elements, list)
@@ -568,8 +620,10 @@ class Catalog:
         entry = self.entry(program, name)
         if entry.kind != "grid":
             raise PresetError(f"program `{program}` preset `{name}` is not a grid")
-        base_dir = Path(base_dir)
-        path = base_dir / entry.file
+        base_dir = Path(base_dir).resolve()
+        path = (base_dir / entry.file).resolve()
+        if not path.is_relative_to(base_dir):
+            raise PresetError(f"{path}: preset path escapes the data directory")
         if path.suffix.lower() != ".json":
             raise PresetError(f"{path}: catalog preset files must be JSON")
         if entry.elements is None:
@@ -585,6 +639,17 @@ class Catalog:
                 f"{path}: catalog range [{z_min}, {z_max}] exceeds the preset "
                 f"domain {preset.z_min}..={preset.z_max}"
             )
+        if z_min > preset.z_min or z_max < preset.z_max:
+            preset.ranges = [
+                (max(lo, z_min), min(hi, z_max), element)
+                for lo, hi, element in preset.ranges
+                if hi >= z_min and lo <= z_max
+            ]
+            preset.elements = {
+                z: element
+                for z, element in preset.elements.items()
+                if z_min <= z <= z_max
+            }
         preset.z_min = z_min
         preset.z_max = z_max
         try:

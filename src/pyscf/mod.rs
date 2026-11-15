@@ -17,8 +17,8 @@
 //! level.  PySCF's `gen_atomic_grids` groups radial shells by angular size and
 //! then `Grids.build` sorts the molecular grid into spatial boxes and pads it
 //! to `Grids.alignment`.  This module keeps the atomic grid in radial-shell
-//! order (like the ORCA builder) so the shell diagnostics and the existing
-//! `AtomicGrid` contract stay meaningful, and it adds no padding points.
+//! order so the shell diagnostics and the existing `AtomicGrid` contract stay
+//! meaningful, and it adds no padding points.
 //! Point *sets*, counts and weights are identical; only the serialization
 //! order and the padding differ.  Use [`crate::order::GridOrder`] for a
 //! consumer-chosen spatial order.

@@ -270,8 +270,6 @@ fn validation_errors_name_the_entry_and_file() {
     cleanup(&dir);
 }
 
-/// Optional external data check.  Run it explicitly with
-/// `RUAA_PRESET_DATA=/path/to/data cargo test --test preset_catalog`.
 #[test]
 fn external_catalog_loads_when_configured() {
     let Ok(dir) = std::env::var("RUAA_PRESET_DATA") else {
@@ -304,4 +302,66 @@ fn external_catalog_loads_when_configured() {
     }
     assert!(checked > 0, "external catalog has no grid entries");
     println!("external catalog: {checked} grid presets");
+}
+
+const NARROW_PRESET: &str = r#"{
+  "name": "narrow",
+  "z_min": 1,
+  "z_max": 4,
+  "radial": "treutler_ahlrichs",
+  "default": {
+    "n_rad": 20,
+    "radial_scale": 1.0,
+    "angular": {"fixed": {"n_ang": 50}}
+  },
+  "range": [
+    {"z_min": 1, "z_max": 4, "n_rad": 30, "radial_scale": 1.0,
+     "angular": {"fixed": {"n_ang": 50}}}
+  ],
+  "element": [
+    {"z": 1, "radial_scale": 1.1},
+    {"z": 4, "radial_scale": 1.4}
+  ]
+}"#;
+
+#[test]
+fn a_narrower_catalog_range_clips_file_data() {
+    let dir = temp_dir();
+    std::fs::write(dir.join("narrow.json"), NARROW_PRESET).unwrap();
+    let manifest = catalog_json(
+        r#"{"name": "narrow", "category": "xc", "file": "narrow.json", "elements": [2, 3]}"#,
+    );
+    let path = dir.join("manifest.json");
+    std::fs::write(&path, manifest).unwrap();
+    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let preset = catalog.load_preset("demo", "narrow", &dir).unwrap();
+    assert_eq!((preset.z_min, preset.z_max), (2, 3));
+    assert_eq!(preset.defaults.len(), 1);
+    assert_eq!((preset.defaults[0].z_min, preset.defaults[0].z_max), (2, 3));
+    assert!(!preset.elements.contains_key(&1));
+    assert!(!preset.elements.contains_key(&4));
+    assert_eq!(preset.element(2).unwrap().n_rad, 30);
+    assert!(preset.atomic_grid(2).is_ok());
+    cleanup(&dir);
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlinked_preset_cannot_escape_the_data_directory() {
+    let dir = temp_dir();
+    let outside = dir.parent().unwrap().join("outside.json");
+    std::fs::write(&outside, TINY_PRESET).unwrap();
+    std::os::unix::fs::symlink(&outside, dir.join("link.json")).unwrap();
+    let manifest = catalog_json(
+        r#"{"name": "tiny", "category": "xc", "file": "link.json", "elements": [1, 2]}"#,
+    );
+    let path = dir.join("manifest.json");
+    std::fs::write(&path, manifest).unwrap();
+    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let error = catalog
+        .load_preset("demo", "tiny", &dir)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("escapes the data directory"), "{error}");
+    cleanup(&dir);
 }

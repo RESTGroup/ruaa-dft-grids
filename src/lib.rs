@@ -263,9 +263,7 @@ pub use partition::{
     HessianContract, PartitionConfig, PartitionConfigBuilder, PartitionDerivEvaluator,
     PartitionEvaluator, PartitionScheme, RadiiAdjust, RadiiConfig, Workspace,
 };
-pub use preset::{
-    AngularLayout, ElementEntry, ElementPreset, ElementRangeDefault, ElementRangeEntry, GridPreset,
-};
+pub use preset::{AngularLayout, ElementPreset, ElementRangeDefault, GridPreset};
 
 /// The circle constant $\pi$.
 pub const PI: f64 = std::f64::consts::PI;

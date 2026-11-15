@@ -31,7 +31,6 @@ adding a device generic to the core.
 
 ```bash
 cargo test
-cargo test --test orca_bitwise
 ```
 
 If anything fails before your edit, stop and report it. Do not build on a red
@@ -67,9 +66,9 @@ unrelated tolerance.
   `SchemeOps` implementation (plus the `ops_for` arm); implement `DerivScheme`
   or return a clear `UnsupportedDerivative`. Do not silently fall back to
   finite differences.
-* For a backend, update `GridSpec::{partition, atomic_plan, atomic_plan_at,
-  geometry_dependent}`, the `From` impls, and the C ABI's unknown-backend
-  branch. `GridSpec` is `#[non_exhaustive]`.
+* For a backend, update the `GridSpec` construction and validation paths and
+  the `From` impls. The enum selectors are non-exhaustive; a future binding ABI
+  must map unknown variants to an explicit error.
 
 ## 5. Update the documentation
 

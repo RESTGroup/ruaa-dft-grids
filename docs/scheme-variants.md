@@ -298,8 +298,8 @@ All five schemes are checked offline:
 * value paths: bitwise regression tests, the PySCF construction, and a direct
   dense cell-product reference for the sparse
   SSF/Gaussian SS/LKO kernels;
-* the Gaussian SS switch against G16 pointwise fractions and the SSF/Gaussian
-  dense-versus-sparse products against each other;
+* the Gaussian SS switch against its published polynomial, and the
+  SSF/Gaussian dense-versus-sparse products against each other;
 * gradients: central differences of the weights, with the point translated
   by its generating atom;
 * Hessians: central differences of the analytic gradient, symmetry and

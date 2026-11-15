@@ -210,9 +210,12 @@ pub const MAX_PRUNED_Z: u32 = 36;
 ///
 /// The ladder sizes and the four element-row boundaries are supplied by the
 /// caller: the core crate carries no program-specific ladder data.  A preset
-/// that uses a five-batch ladder fills both fields.  A size that the angular
+/// that uses a five-batch ladder fills the sizes, the unpruned fallback and
+/// the boundaries; `max_pruned_z` and `heavy_fallback` default to
+/// [`MAX_PRUNED_Z`] and [`HeavyFallback::Unpruned`].  A size that the angular
 /// builder cannot construct is rejected when the grid is assembled.
 #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LadderPrune {
     /// Five angular sizes, inner to outer.
     pub ladder: [usize; 5],
@@ -221,9 +224,15 @@ pub struct LadderPrune {
     /// Element-row boundaries `Z <= 2`, `Z <= 10`, `Z <= 18`, heavier.
     pub bounds: [[f64; 4]; 4],
     /// Highest nuclear charge with a pruned ladder.
+    #[serde(default = "default_max_pruned_z")]
     pub max_pruned_z: u32,
     /// Sizing for elements above `max_pruned_z`.
+    #[serde(default)]
     pub heavy_fallback: HeavyFallback,
+}
+
+fn default_max_pruned_z() -> u32 {
+    MAX_PRUNED_Z
 }
 
 impl LadderPrune {

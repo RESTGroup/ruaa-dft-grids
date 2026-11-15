@@ -35,17 +35,18 @@ field, even without a type change, is.
 
 Public enums that dispatch over an extensible set are the main forward
 compatibility problem: adding a variant is a breaking change for downstream
-code that matches exhaustively. `GridSpec`, `PartitionScheme`, `Radial`,
-`Prune`, `RadiiTable`, `RadiiAdjust`, `PostPrune`, `PruneWarning`,
-`HeavyFallback` and `Error` are already `#[non_exhaustive]`.  An enum that is
-genuinely closed is documented as closed and stays exhaustively matchable. When adding a public enum:
+code that matches exhaustively. `PartitionScheme`, `Radial`, `Prune`,
+`RadiiTable`, `RadiiAdjust`, `PostPrune`, `PruneWarning`, `HeavyFallback`,
+`HessianBackend`, `PresetKind` and `Error` are already `#[non_exhaustive]`.
+An enum that is genuinely closed is documented as closed and stays
+exhaustively matchable. When adding a public enum:
 
 * Decide whether it is genuinely closed. If it is expected to grow, mark it
   `#[non_exhaustive]` from the first release.
 * Keep exhaustive matching for enums that are genuinely closed, and document
   why they are closed.
-* Update the C ABI's unknown-variant branch when a non-exhaustive enum reaches
-  that layer (`spec_kind` returns `-1`, setters return `UNSUPPORTED`).
+* A future binding ABI must map an unknown variant to an explicit
+  unsupported/invalid argument result rather than assuming the enum is closed.
 * Do not add `#[non_exhaustive]` to a struct merely to avoid committing to its
   fields. Prefer private fields plus accessors for a type whose invariants
   matter.

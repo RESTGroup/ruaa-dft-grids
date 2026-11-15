@@ -130,7 +130,7 @@ fn is_empty_string(value: &str) -> bool {
 
 /// Angular layout of the shells of one atom.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 #[non_exhaustive]
 pub enum AngularLayout {
     /// The same Lebedev (or special 12/18-point) rule on every shell.
@@ -452,7 +452,7 @@ pub struct GridPreset {
 
 /// One element entry in the preset file representation.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ElementEntry {
+pub(crate) struct ElementEntry {
     /// Nuclear charge.
     pub z: u32,
     /// Element parameters.
@@ -462,7 +462,7 @@ pub struct ElementEntry {
 
 /// One range entry in the preset file representation.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ElementRangeEntry {
+pub(crate) struct ElementRangeEntry {
     /// First nuclear charge covered by the range.
     pub z_min: u32,
     /// Last nuclear charge covered by the range.

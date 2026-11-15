@@ -83,14 +83,6 @@ pub enum Error {
         reason: String,
     },
 
-    /// A periodic-table row is outside the `1..=6` range covered by the
-    /// pruning cutoff tables.
-    #[error("periodic-table row {row} is outside 1..=6")]
-    InvalidPeriodicRow {
-        /// The offending row.
-        row: u32,
-    },
-
     /// PySCF has no Lebedev order with this index.
     #[error("PySCF has no Lebedev order {order}")]
     UnsupportedLebedevOrder {
@@ -116,13 +108,6 @@ pub enum Error {
         what: &'static str,
         /// The builder's message.
         message: String,
-    },
-
-    /// A grid index is outside the supported range.
-    #[error("grid index {index} is outside the supported range")]
-    UnsupportedCosxGrid {
-        /// The offending index.
-        index: usize,
     },
 
     /// A requested range is reversed or extends beyond the plan.
@@ -228,8 +213,11 @@ pub enum Error {
         atom: usize,
     },
 
-    /// A caller-provided argument must be finite and positive.
-    #[error("{argument} must be a finite positive value")]
+    /// A caller-provided argument or configuration value is invalid.
+    ///
+    /// `argument` names the rejected input; the Display form stays neutral
+    /// because the rejected value may be numeric, a range, or a layout.
+    #[error("invalid {argument}")]
     InvalidArgument {
         /// Name of the offending argument.
         argument: &'static str,
@@ -347,6 +335,13 @@ mod tests {
         assert_eq!(
             Error::PruneIndexDuplicate { index: 3 }.to_string(),
             "prune index 3 is listed more than once"
+        );
+        assert_eq!(
+            Error::InvalidArgument {
+                argument: "preset default range outside the element domain"
+            }
+            .to_string(),
+            "invalid preset default range outside the element domain"
         );
     }
 

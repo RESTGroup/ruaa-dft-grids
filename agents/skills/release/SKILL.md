@@ -16,10 +16,10 @@ preparation and verification step; only a human runs `cargo publish`.
 * The working tree is clean and the branch is the intended release branch.
 * The version in `Cargo.toml` is correct and the lockfile is committed if the
   repository tracks it.
-* The repository URL is live (`Cargo.toml`).
-* The history that will be published has passed the provenance review. A
-  clean working tree does not clean old commits; see
-  [`../../rules/provenance.md`](../../rules/provenance.md).
+* The repository URL is publicly reachable (a private repository returns 404
+  to anonymous users).
+* The history decision has been recorded. A clean working tree does not clean
+  old commits; see [`../../rules/provenance.md`](../../rules/provenance.md).
 * The licence and the redistribution terms for bundled reference data and
   parameter tables have been reviewed and recorded.
 

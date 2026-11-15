@@ -396,3 +396,54 @@ angular = { fixed = { n_ang = 50 } }
         })
     ));
 }
+
+#[test]
+fn json_rejects_unknown_nested_angular_and_ladder_keys() {
+    let preset = |angular: &str| {
+        format!(
+            r#"{{"radial":"delley","default":{{"n_rad":20,"radial_scale":1.0,"angular":{angular}}}}}"#
+        )
+    };
+    let cases = [
+        r#"{"fixed":{"n_ang":50,"bogus":1}}"#,
+        r#"{"pruned":{"base":194,"prune":"nwchem","bogus":1}}"#,
+        r#"{"product":{"theta":8,"bogus":1}}"#,
+        r#"{"pruned":{"base":194,"prune":{"ladder":{"ladder":[50,110,194,302,434],"unpruned":434,"bounds":[[0.25,0.5,1.0,4.5],[0.1667,0.5,0.9,3.5],[0.1,0.4,0.8,2.5],[0.02,0.1,0.2,3.5]],"bogus":1}}}}"#,
+    ];
+    for angular in cases {
+        let error = serde_json::from_str::<GridPreset>(&preset(angular))
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("bogus"), "{angular}: {error}");
+    }
+}
+
+#[test]
+fn ladder_prune_fields_default_in_the_file_form() {
+    let text = r#"{
+      "radial":"delley",
+      "default":{
+        "n_rad":20,
+        "radial_scale":1.0,
+        "angular":{"pruned":{"base":194,"prune":{"ladder":{
+          "ladder":[50,110,194,302,434],
+          "unpruned":434,
+          "bounds":[[0.25,0.5,1.0,4.5],[0.1667,0.5,0.9,3.5],[0.1,0.4,0.8,2.5],[0.02,0.1,0.2,3.5]]
+        }}}}
+      }
+    }"#;
+    let preset: GridPreset = serde_json::from_str(text).unwrap();
+    let element = preset.default.as_ref().unwrap();
+    let AngularLayout::Pruned {
+        prune: Prune::Ladder(ladder),
+        ..
+    } = &element.angular
+    else {
+        panic!("expected a ladder layout");
+    };
+    assert_eq!(ladder.max_pruned_z, ruaa_dft_grids::prune::MAX_PRUNED_Z);
+    assert_eq!(
+        ladder.heavy_fallback,
+        ruaa_dft_grids::prune::HeavyFallback::Unpruned
+    );
+}
