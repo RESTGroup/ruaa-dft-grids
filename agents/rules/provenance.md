@@ -9,7 +9,7 @@ that rule.
 The rule applies to everything a reader of the repository can see:
 
 * source, comments, docstrings, examples, tests, and golden data;
-* `README.md`, `docs/`, `validation/`, `agents/`, and configuration files;
+* `README.md`, `docs/`, `tests/`, `examples/`, `agents/`, and configuration files;
 * commit messages, tag messages, and release notes;
 * generated artifacts that are checked in, including schemas and headers.
 

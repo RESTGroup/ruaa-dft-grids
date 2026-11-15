@@ -40,7 +40,7 @@ baseline.
 ## 3. Add the reference test first
 
 * For an external reference, add the producer case and the checked-in probe
-  following `validation/README.md`.
+  following `tests/README.md`.
 * For an analytic construction, add a node/weight/moment or FD test.
 * For a new partition scheme, add a fraction-sum test and a finite-difference
   derivative test where differentiable.
@@ -61,7 +61,7 @@ unrelated tolerance.
   `RadialScalePolicy` in `RadialSpec`; do not force a new map to define an
   element-scale rule.
 * For a pruning policy, implement `Pruning` and consume `PruneContext`; the
-  built-in `Prune` and `GridPruning` selectors are implementations, not
+  built-in `Prune` selector is an implementation, not
   separate contracts.
 * For a partition scheme, add the `PartitionScheme` variant and a private
   `SchemeOps` implementation (plus the `ops_for` arm); implement `DerivScheme`
@@ -76,7 +76,8 @@ unrelated tolerance.
 * `docs/algorithms.md` for a construction or formula.
 * `docs/user-guide.md` for a consumer-facing selector.
 * `docs/scheme-variants.md` for a partition scheme.
-* `validation/` README for a new producer or case family.
+* the local workspace for a program-specific producer or case family; such
+  material is not tracked here.
 * `agents/development.md` only if the architecture or extension procedure
   changed.
 

@@ -37,9 +37,8 @@ Public enums that dispatch over an extensible set are the main forward
 compatibility problem: adding a variant is a breaking change for downstream
 code that matches exhaustively. `GridSpec`, `PartitionScheme`, `Radial`,
 `Prune`, `RadiiTable`, `RadiiAdjust`, `PostPrune`, `PruneWarning`,
-`HeavyFallback` and `Error` are already `#[non_exhaustive]`. `GridPruning` is
-a deliberately closed ORCA selector (three variants) and is exhaustively
-matchable. When adding a public enum:
+`HeavyFallback` and `Error` are already `#[non_exhaustive]`.  An enum that is
+genuinely closed is documented as closed and stays exhaustively matchable. When adding a public enum:
 
 * Decide whether it is genuinely closed. If it is expected to grow, mark it
   `#[non_exhaustive]` from the first release.

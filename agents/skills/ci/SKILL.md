@@ -1,6 +1,6 @@
 ---
 name: ci
-description: Add or maintain the continuous-integration gate for the Rust core and the binding crates.
+description: Add or maintain the continuous-integration gate for the Rust core and the repository tooling.
 ---
 
 # Continuous integration
@@ -17,16 +17,15 @@ Run these from the repository root before proposing a CI change:
 cargo fmt --check
 cargo clippy --all-targets -- -D warnings
 cargo test
-cargo test --workspace
 RUSTDOCFLAGS="--html-in-header katex-header.html -D warnings" cargo doc --no-deps
+python -m unittest discover -s python/tests -v
 cargo package --list
 ```
 
 `cargo test` is the offline core path. It must not gain a dependency on ORCA,
 PySCF, Gaussian, `strace`, network access, or a maintainer work directory.
-`cargo test --workspace` additionally builds the Python and C binding crates;
-keep it as a separate job so a binding-toolchain failure does not hide a core
-failure.
+The Python preset tooling is dependency-free (Python 3.11+); it runs as its own
+job so a Python failure does not hide a core failure.
 
 ## Minimum CI jobs
 
@@ -37,9 +36,8 @@ failure.
 | test | `cargo test --locked` | offline, default features |
 | docs | docs build with `-D warnings` | includes the KaTeX header |
 | package | `cargo package --list --locked` | checks the published file set |
-| bindings | `cargo test --workspace --locked` + C smoke | needs the C toolchain |
+| python-preset | `python -m unittest discover -s python/tests -v` | Python 3.11+, no Rust |
 | msrv | `cargo check --all-targets --locked` on 1.87 | required for the declared MSRV |
-| python | maturin build + `pytest` | wheel install/import smoke |
 | package-verify | `cargo package` + packaged tests | builds the tarball |
 | dry-run | `cargo publish --dry-run --locked` | manual `workflow_dispatch` only |
 
@@ -63,16 +61,15 @@ what CI reads.
   the dependencies are known to build there.
 * Keep the package job read-only. Do not run `cargo publish` from a pull
   request or from a workflow that untrusted code can modify.
-* The Python binding job needs a Python toolchain and the extension build
-  tooling (for example `maturin`). The C ABI job needs a C compiler. Keep both
-  out of the required core gate until their packaging is release-ready.
+* The Python preset job needs only a Python interpreter and the standard
+  library; it does not build a wheel or a Rust extension.
 
 ## Package check
 
 The published crate must not contain repository-process material:
 
 ```bash
-cargo package --list | grep -E '^(agents/|\.github/|AGENTS|CLAUDE|.*\.local)'
+cargo package --list | grep -E '^(agents/|python/|\.github/|AGENTS|CLAUDE|.*\.local)'
 ```
 
 The command should print nothing. The `exclude` list in `Cargo.toml` is the
@@ -91,6 +88,6 @@ source of truth; update it when a new repository-only directory is added.
 
 * [ ] Every command in the local gate passes locally.
 * [ ] The workflow does not require an external QC program.
-* [ ] The package check excludes `agents/` and local configuration.
+* [ ] The package check excludes `agents/`, `python/` and local configuration.
 * [ ] The MSRV job is only enabled after it passes on the declared version.
 * [ ] No secrets are required for the core test jobs.

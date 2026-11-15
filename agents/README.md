@@ -24,7 +24,7 @@ published, so process knowledge kept outside it would be lost.
 
 | Material | Home |
 |---|---|
-| Public API, formulas, user guide, validation reference format | `docs/`, rustdoc, `validation/` |
+| Public API, formulas, user guide, test fixtures | `docs/`, rustdoc, `tests/` |
 | Agent procedures, maintainer rules, release gates, architecture decisions | `agents/` |
 | Machine-specific notes, raw reference output, unpublished provenance notes | not tracked in this repository |
 
@@ -93,13 +93,16 @@ belongs here.
   — no big-bang refactor before 0.1; how non-CPU backends fit.
 * [`decisions/0003-release-gates.md`](decisions/0003-release-gates.md) — what
   must be true before the first public release.
+* [`decisions/0004-program-data-externalization.md`](decisions/0004-program-data-externalization.md)
+  — why program data and the binding crates live outside the package.
 
 ## Current status
 
-The current tree passes the local Rust gates (`cargo fmt --check`,
+The current tree passes the local Rust and Python gates (`cargo fmt --check`,
 `cargo clippy --all-targets -- -D warnings`, `cargo test`,
-`cargo doc --no-deps`). The core CI workflow is
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml); the binding and
-MSRV jobs are separate follow-ups. The repository URL is still a release TODO
-in `Cargo.toml`, and the pre-publication history review is open — see
-[`decisions/0003-release-gates.md`](decisions/0003-release-gates.md).
+`cargo doc --no-deps`, and `python -m unittest discover -s python/tests`).
+The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs
+core, Python-preset-tooling, MSRV 1.87, package verification and a manual
+publish dry-run.  The repository URL is not yet live, and the publishable
+history was replaced by a fresh initial import; the remaining release gates are
+in [`decisions/0003-release-gates.md`](decisions/0003-release-gates.md).

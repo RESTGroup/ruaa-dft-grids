@@ -7,26 +7,21 @@ itself in [`decisions/`](decisions/).
 
 ## 1. Current shape
 
-The repository is a Cargo workspace:
-
-| Member | Role | Default build |
-|---|---|---|
-| `.` (`ruaa-dft-grids`) | the Rust library | yes |
-| `crates/ruaa-dft-grids-python` | PyO3 extension and Python facade | no |
-| `crates/ruaa-dft-grids-capi` | C ABI and generated header | no |
-
-`cargo test` at the root builds only the core crate. `cargo test --workspace`
-also builds the binding crates. The core crate is the one that is closest to a
-first publication; the bindings have their own packaging and test cycle.
+The repository contains one Rust package, `.` (`ruaa-dft-grids`), plus
+repository-only tooling: `agents/` for process material and `python/` for the
+dependency-free preset reader.  The in-tree Python/C binding crates were
+removed from the package (decision 0004) and live in the maintainer's local
+workspace until they are ported to the current API; `cargo test` builds only
+the crate.
 
 ### Layers
 
 ```text
 data / leaf      params, lebedev, angular directions, atomgrid, error
-constructors     radial, prune, radii, orca, pyscf, gaussian
+constructors     radial, prune, radii, pyscf
 orchestration    grid (GridSpec/GridPlan/BatchBuffer), moleculegrid, order
 partition        config, value kernels, streaming derivatives
-bindings         Python and C wrappers over the public Rust API
+tooling          python preset reader and canonical fixture (repository-only)
 ```
 
 The main consumer path is:
@@ -48,8 +43,7 @@ is separate and streams gradient/Hessian blocks through
   and `BatchBuffer`. It imports the backend builders.
 * `src/radial/mod.rs` is the unified radial selector. A new radial map is one
   enum variant plus the node/increment kernel and its element-scale rule.
-* `src/prune/mod.rs` is the pruning selector; `src/orca/prune.rs` is the
-  separate ORCA angular-chain family.
+* `src/prune/mod.rs` is the pruning selector.
 * `src/radii.rs` already has a `Custom` table, so a new named table is usually
   data plus one variant.
 * `src/partition/mod.rs` owns `PartitionScheme`, `PartitionConfig`, the
@@ -125,9 +119,9 @@ Seams worth knowing:
 * **`RadialMap` + `RadialScalePolicy`** separate the node mapping from the
   element-to-xi rule. Use `RadialSpec` for a custom map; `RadialScalePolicy::Explicit`
   covers a map with no element rule.
-* **`Pruning` + `PruneContext`** is the common pruning contract. `Prune` and
-  ORCA's `GridPruning` both implement it; a new policy can be used through
-  `&dyn Pruning` without editing either enum.
+* **`Pruning` + `PruneContext`** is the common pruning contract. `Prune`
+  implements it; a new policy can be used through `&dyn Pruning` without
+  editing the enum.
 * **`RadiiTable::Custom`** already covers a caller-supplied table. A new
   named table is only worth adding when it has a clear provenance and a
   documented element range.
@@ -250,8 +244,8 @@ This is a sequencing sketch, not a promise of dates.
   CI, package audit, history review, provenance/licence review, metadata, API
   audit.
 * Keep the numerical surface as it is. New schemes are not a release blocker.
-* Publish the core crate. Treat the Python and C bindings as separate release
-  artifacts with their own checks.
+* Publish the core crate. The Python preset reader is repository tooling,
+  not a release artifact.
 
 ### 0.1.x — maintenance
 

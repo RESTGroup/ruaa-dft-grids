@@ -16,7 +16,7 @@ preparation and verification step; only a human runs `cargo publish`.
 * The working tree is clean and the branch is the intended release branch.
 * The version in `Cargo.toml` is correct and the lockfile is committed if the
   repository tracks it.
-* The repository URL is filled in (`Cargo.toml`, `pyproject.toml`).
+* The repository URL is live (`Cargo.toml`).
 * The history that will be published has passed the provenance review. A
   clean working tree does not clean old commits; see
   [`../../rules/provenance.md`](../../rules/provenance.md).
@@ -31,7 +31,6 @@ Run from the repository root:
 cargo fmt --check
 cargo clippy --all-targets -- -D warnings
 cargo test
-cargo test --workspace
 RUSTDOCFLAGS="--html-in-header katex-header.html -D warnings" cargo doc --no-deps
 cargo package --list
 ```
@@ -39,14 +38,14 @@ cargo package --list
 Then inspect the package list and the packaged archive:
 
 ```bash
-cargo package --list | grep -E '^(agents/|\.github/|AGENTS|CLAUDE|.*\.local)'   # must be empty
+cargo package --list | grep -E '^(agents/|python/|\.github/|AGENTS|CLAUDE|.*\.local)'   # must be empty
 cargo package --list | wc -l
 ```
 
-The package must not contain `agents/`, `AGENTS.md`, local configuration,
-scratch directories, raw probe output, build artifacts, or a stale lockfile.
-The validation probes under `validation/` are intentionally included because
-the comparison tests need them.
+The package must not contain `agents/`, `python/`, `AGENTS.md`, local
+configuration, scratch directories, raw probe output, build artifacts, or a
+stale lockfile.  It does contain the tests, examples, docs and the canonical
+preset fixture; program-specific reference data stays in the local workspace.
 
 Finally, run the registry dry run:
 
@@ -59,34 +58,16 @@ index; that is expected.
 
 ## Version and tag
 
-1. Update the version in `Cargo.toml` and the binding crates if they share the
-   release.
+1. Update the version in `Cargo.toml`.
 2. Add or update the changelog with the user-visible changes and any breaking
    API change.
 3. Commit the release preparation with the repository's commit convention.
 4. Create an annotated tag, for example `v0.1.0`.
 5. A human runs `cargo publish` from the clean, tagged commit.
 
-Do not publish the core crate and the binding crates in one step unless all of
-them have passed their own packaging checks. The core crate is the first
-release candidate; the Python and C bindings can follow separately.
-
-## Bindings (separate release)
-
-Both binding crates set `publish = false`; they are not part of the crates.io
-core release. If they are released:
-
-* **Python.** Build wheels for the supported platforms with the toolchain in
-  `docs/python-interface.md`, run the Python tests under
-  `crates/ruaa-dft-grids-python/tests/`, and verify the package metadata and
-  `pyproject.toml` URLs. Publish to PyPI only after the wheel matrix passes.
-* **C.** Build the shared and static libraries, regenerate and diff the header
-  with cbindgen, run `crates/ruaa-dft-grids-capi/tests/smoke.sh`, and package
-  the header, library and pkg-config file together. Bump the ABI version if
-  the C surface changes.
-* Do not tag a binding release until its own CI job is green and its metadata
-  is complete. The binding version may lag the core crate, but it must record
-  which core version it wraps.
+The core crate is the only release artifact.  The Python preset reader in
+`python/` and the agent material in `agents/` are repository tooling; they are
+excluded from the package and are validated by the CI preset-tooling job.
 
 ## After publishing
 
