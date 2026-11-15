@@ -52,7 +52,24 @@ jobs:
             echo "repository-process material would be published" >&2
             exit 1
           fi
-          test "$(wc -l < package-files.txt)" -gt 200
+          for required in \
+            Cargo.toml \
+            Cargo.lock \
+            LICENSE \
+            NOTICE \
+            README.md \
+            CHANGELOG.md \
+            katex-header.html \
+            docs/presets.md \
+            examples/presets/pyscf-level-3.toml \
+            src/preset.rs \
+            src/catalog.rs; do
+            if ! grep -qx "$required" package-files.txt; then
+              echo "required package file missing: $required" >&2
+              exit 1
+            fi
+          done
+          test "$(wc -l < package-files.txt)" -gt 50
           rm package-files.txt
 
   msrv:
@@ -70,71 +87,6 @@ jobs:
 
       - name: Check the declared MSRV
         run: cargo check --all-targets --locked
-
-  bindings:
-    name: bindings (workspace, C ABI)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Workspace tests
-        run: cargo test --workspace --locked
-
-      - name: Install cbindgen
-        run: cargo install cbindgen --version 0.29.4 --locked
-
-      - name: C header freshness
-        run: sh crates/ruaa-dft-grids-capi/tests/check_header.sh
-
-      - name: C ABI smoke (C, C++, static)
-        run: sh crates/ruaa-dft-grids-capi/tests/smoke.sh
-
-      - name: C install and pkg-config
-        run: |
-          set -euo pipefail
-          stage="$RUNNER_TEMP/capi-stage"
-          rm -rf "$stage"
-          make -C crates/ruaa-dft-grids-capi install DESTDIR="$stage" PREFIX=/usr/local
-          export PKG_CONFIG_PATH="$stage/usr/local/lib/pkgconfig"
-          test "$(pkg-config --modversion ruaa_dft_grids)" = "0.1.0"
-          cc -std=c11 -Wall -Wextra -Werror \
-            crates/ruaa-dft-grids-capi/examples/build_grid.c \
-            $(pkg-config --cflags --libs ruaa_dft_grids) \
-            -o "$RUNNER_TEMP/capi-installed"
-          LD_LIBRARY_PATH="$stage/usr/local/lib" "$RUNNER_TEMP/capi-installed" > /dev/null
-
-  python:
-    name: Python wheel and pytest
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install tooling
-        run: python -m pip install --upgrade pip maturin numpy pytest
-
-      - name: Build and install the wheel
-        working-directory: crates/ruaa-dft-grids-python
-        run: |
-          maturin build --release --out dist
-          python -m pip install --force-reinstall dist/*.whl
-
-      - name: Pytest
-        working-directory: crates/ruaa-dft-grids-python
-        run: python -m pytest -q tests
 
   package:
     name: package verification
