@@ -15,8 +15,8 @@ keywords = ["dft", "grid", "lebedev", "quantum-chemistry", "preset"]
 categories = ["science", "mathematics"]
 
 # Keep development-only material out of the published crate.  The crate ships
-# no external-program reference data; `agents/` is repository process material,
-# not library API.
+# no external-program reference data; `agents/` and `release-plz.toml` are
+# repository process material, not library API.
 exclude = [
     "AGENTS.md",
     "AGENTS.local.md",
@@ -25,6 +25,7 @@ exclude = [
     "/agents/",
     "/.github/",
     "/python/",
+    "/release-plz.toml",
     "/target/",
 ]
 

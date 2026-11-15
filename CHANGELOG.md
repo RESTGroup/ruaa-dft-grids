@@ -4,7 +4,7 @@ All notable user-visible changes are recorded here.  The crate is pre-1.0:
 the API may change frequently, including breaking changes in minor releases,
 and each break is called out explicitly.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-11-15)
 
 ### Grid specification
 
@@ -143,3 +143,9 @@ and each break is called out explicitly.
   are maintained outside the package; the optional PySCF cross-check in
   `examples/presets/` builds its reference at run time and is not part of the
   test suite.
+- The `0.1.x` release series publishes only the Rust crate.  The Python preset
+  reader under `python/` remains repository tooling; no PyPI distribution is
+  built in this cycle.
+- Release automation uses release-plz through manual-dispatch workflows.  The
+  changelog stays curated, so release-plz does not rewrite it; it publishes the
+  crate, creates the `v0.1.0` tag and opens the GitHub release.

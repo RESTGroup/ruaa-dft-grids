@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           package_list="$RUNNER_TEMP/package-files.txt"
           cargo package --list --locked > "$package_list"
-          if grep -Eq '^(agents/|python/|\.github/|AGENTS|CLAUDE|.*\.local)' "$package_list"; then
+          if grep -Eq '^(agents/|python/|\.github/|release-plz\.toml|AGENTS|CLAUDE|.*\.local)' "$package_list"; then
             echo "repository-process material would be published" >&2
             exit 1
           fi

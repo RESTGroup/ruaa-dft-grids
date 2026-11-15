@@ -308,6 +308,13 @@ frozen: **frequent breaking changes are expected in minor releases** while the
 consumer API stabilises.  Pin an exact version in `Cargo.toml` (for example
 `ruaa-dft-grids = "=0.1.0"`) if a stable API is required.
 
+### Release scope
+
+The `0.1.x` release series publishes only the `ruaa-dft-grids` Rust crate to
+crates.io.  The dependency-free Python preset reader under `python/` is
+repository tooling; its PyPI distribution is deferred and it is not part of
+the crate package.
+
 ## References
 
 * A. D. Becke, *J. Chem. Phys.* **88**, 2547 (1988).

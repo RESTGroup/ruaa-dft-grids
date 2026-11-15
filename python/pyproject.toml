@@ -1,3 +1,5 @@
+# Repository tooling only: this distribution is not built or published in the
+# 0.1.x release cycle (decision 0005).
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"

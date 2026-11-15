@@ -1,0 +1,15 @@
+# Only the Rust library crate is released from this repository.  The Python
+# preset reader is repository tooling, not a Cargo package; its distribution
+# is deferred (decision 0005).
+[workspace]
+release = false
+changelog_update = false
+git_release_enable = false
+git_tag_enable = false
+
+[[package]]
+name = "ruaa-dft-grids"
+release = true
+publish = true
+git_release_enable = true
+git_tag_enable = true

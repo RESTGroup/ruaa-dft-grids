@@ -129,3 +129,15 @@ release skill is in [`../skills/release/SKILL.md`](../skills/release/SKILL.md).
   Gaussian file; the documented PySCF tables carry the PySCF notice.
 - The Lebedev generator was replaced with the Apache-2.0 `rstsr` source and
   the NOTICE was updated.
+
+## Status update 2026-11-15
+
+- Decision [`0005`](0005-defer-python-release.md) narrows the first release
+  to the Rust crate.  The Python preset reader is repository tooling; its
+  distribution is deferred and does not block `0.1.x`.
+- Release automation is configured in
+  [`.github/workflows/release-plz.yml`](../../.github/workflows/release-plz.yml)
+  and
+  [`.github/workflows/release-plz-pr.yml`](../../.github/workflows/release-plz-pr.yml).
+  Both workflows are manual-dispatch only.  A public repository and the
+  `CARGO_REGISTRY_TOKEN` secret remain prerequisites for the publish step.

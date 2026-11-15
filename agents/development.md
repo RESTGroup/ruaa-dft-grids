@@ -244,7 +244,8 @@ This is a sequencing sketch, not a promise of dates.
   audit.
 * Keep the numerical surface as it is. New schemes are not a release blocker.
 * Publish the core crate. The Python preset reader is repository tooling,
-  not a release artifact.
+  not a release artifact; its distribution is deferred (decision
+  [`0005`](decisions/0005-defer-python-release.md)).
 
 ### 0.1.x — maintenance
 

@@ -1,5 +1,9 @@
 # Python preset tooling
 
+> **Release status:** this reader is repository tooling.  The `0.1.x` release
+> publishes only the Rust crate; no Python distribution is built or uploaded.
+> See [decision 0005](../agents/decisions/0005-defer-python-release.md).
+
 Dependency-free reader and validator for `ruaa_dft_grids` preset files and
 preset catalogs.  It mirrors the Rust file form:
 

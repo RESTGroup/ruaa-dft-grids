@@ -7,7 +7,8 @@ including analytic gradients and Hessians.  The published crate is
 program-agnostic: it ships the open-source PySCF level presets and a
 data-driven `GridPreset` API.  ORCA/Gaussian parameter data, reference
 probes and construction checks live in a separate local workspace outside
-this repository.
+this repository.  The dependency-free Python preset reader under `python/` is
+repository tooling; the `0.1.x` release publishes only the Rust crate.
 
 ## Important notices to AI code agent
 
@@ -39,6 +40,7 @@ this repository.
   comments factual and brief; do not delete golden tables as "clutter".
 - **Git commit rule**: use the subject form `<crate-or-module>: <summary>` (for example `ruaa_dft_grids (partition): ...`). If the environment provides a commit-attribution skill, follow it for the co-author trailers.
 - **Not auto commit unless human requested**: do not run `git commit` on your own, even with permission to do so.
+- **Release only through CI**: do not run `cargo publish`, `cargo release`, or any upload command from a local checkout. The manual release workflow in GitHub Actions is the only publish path; local verification stops at `cargo publish --dry-run`.
 - **Write in English**: the user may interact in any language; communicate in the user's language, but code, comments, documentation, and commit messages are always English.
 - **API not fixed**: the crate is at an early stage (0.1.x). Do not assume any API is fixed. While working on higher-level code, lower-level APIs may be proposed or edited when poorly designed — notify human developers in the summary.
 - **Large files**: if you find large or bulky files — especially ones that are or would be `.gitignore`d — do not act on your own: ask the maintainer.

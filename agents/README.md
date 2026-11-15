@@ -95,6 +95,8 @@ belongs here.
   must be true before the first public release.
 * [`decisions/0004-program-data-externalization.md`](decisions/0004-program-data-externalization.md)
   — why program data and the binding crates live outside the package.
+* [`decisions/0005-defer-python-release.md`](decisions/0005-defer-python-release.md)
+  — why the first release is the Rust crate only.
 
 ## Current status
 
@@ -103,7 +105,16 @@ The current tree passes the local Rust and Python gates (`cargo fmt --check`,
 `cargo doc --no-deps`, and `python -m unittest discover -s python/tests`).
 The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs
 core, Python-preset-tooling, MSRV 1.87, package verification and a manual
-publish dry-run.  The repository is private; making it publicly reachable,
-tagging the release and recording human approval are maintainer actions.  The
-remaining release gates are in
+publish dry-run.  Two additional manual-dispatch workflows,
+[`.github/workflows/release-plz-pr.yml`](../.github/workflows/release-plz-pr.yml)
+and [`.github/workflows/release-plz.yml`](../.github/workflows/release-plz.yml),
+prepare the release PR and publish the crate through release-plz.  The
+`0.1.x` release publishes only `ruaa-dft-grids`; the Python preset reader is
+repository tooling and its distribution is deferred (decision 0005).
+
+The repository is public.  Dispatching the release workflow and recording
+human approval are maintainer actions.  The release-PR workflow additionally
+needs a token that can create pull requests; if the organization blocks the
+built-in token, configure the `RELEASE_PLZ_TOKEN` secret.  The remaining
+release gates are in
 [`decisions/0003-release-gates.md`](decisions/0003-release-gates.md).

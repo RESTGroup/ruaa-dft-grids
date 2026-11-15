@@ -40,6 +40,8 @@ job so a Python failure does not hide a core failure.
 | msrv | `cargo check --all-targets --locked` on 1.87 | required for the declared MSRV |
 | package-verify | `cargo package` + packaged tests | builds the tarball |
 | dry-run | `cargo publish --dry-run --locked` | manual `workflow_dispatch` only |
+| release-plz-pr | `release-plz release-pr` | manual release-PR workflow |
+| release-plz | `release-plz release` | manual publish workflow |
 
 Optional jobs, once verified on a maintainer machine:
 
@@ -64,12 +66,27 @@ what CI reads.
 * The Python preset job needs only a Python interpreter and the standard
   library; it does not build a wheel or a Rust extension.
 
+## Release workflows
+
+Release automation lives in
+[`.github/workflows/release-plz-pr.yml`](../../../.github/workflows/release-plz-pr.yml)
+and
+[`.github/workflows/release-plz.yml`](../../../.github/workflows/release-plz.yml).
+Both are `workflow_dispatch` only; do not add `push` or `pull_request`
+triggers.  The publish job is the only job that needs
+`CARGO_REGISTRY_TOKEN`, and it releases only `ruaa-dft-grids`; the Python
+preset reader is repository tooling.  See
+[`../release/SKILL.md`](../release/SKILL.md) for the release procedure.
+
+`release-plz.toml` is repository process material and must stay out of the
+crate package.
+
 ## Package check
 
 The published crate must not contain repository-process material:
 
 ```bash
-cargo package --list | grep -E '^(agents/|python/|\.github/|AGENTS|CLAUDE|.*\.local)'
+cargo package --list | grep -E '^(agents/|python/|release-plz\.toml|\.github/|AGENTS|CLAUDE|.*\.local)'
 ```
 
 The command should print nothing. The `exclude` list in `Cargo.toml` is the
@@ -88,6 +105,8 @@ source of truth; update it when a new repository-only directory is added.
 
 * [ ] Every command in the local gate passes locally.
 * [ ] The workflow does not require an external QC program.
-* [ ] The package check excludes `agents/`, `python/` and local configuration.
+* [ ] The package check excludes `agents/`, `python/`, `release-plz.toml` and
+      local configuration.
 * [ ] The MSRV job is only enabled after it passes on the declared version.
 * [ ] No secrets are required for the core test jobs.
+* [ ] The release workflows remain manual-dispatch only.
