@@ -1,8 +1,8 @@
 # Changelog
 
-All notable user-visible changes are recorded here.  The crate version is
-still pre-1.0; breaking changes are allowed in minor releases and are called
-out explicitly.
+All notable user-visible changes are recorded here.  The crate is pre-1.0:
+the API may change frequently, including breaking changes in minor releases,
+and each break is called out explicitly.
 
 ## 0.1.0 (unreleased)
 

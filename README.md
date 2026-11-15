@@ -303,8 +303,10 @@ the agent and the model that produced it in its `Co-authored-by` trailers.
 
 ## Status
 
-The crate is at `0.1.x`.  The API is not frozen yet; lower-level types may be
-refined as the consumer API stabilises.
+The crate is at `0.1.x` and is under active development.  The API is not
+frozen: **frequent breaking changes are expected in minor releases** while the
+consumer API stabilises.  Pin an exact version in `Cargo.toml` (for example
+`ruaa-dft-grids = "=0.1.0"`) if a stable API is required.
 
 ## References
 

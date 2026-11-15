@@ -193,6 +193,12 @@
 //!
 //! `ruaa_dft_grids` uses the 2024 edition and requires Rust 1.87 or newer.
 //!
+//! ## Stability
+//!
+//! The crate is at `0.1.x` and the API is not frozen.  Breaking changes may
+//! occur frequently in minor releases while the consumer API stabilises; pin
+//! an exact version if a stable API is required.
+//!
 //! ## References
 //!
 //! * A. D. Becke, *J. Chem. Phys.* **88**, 2547 (1988) (fuzzy cells).
