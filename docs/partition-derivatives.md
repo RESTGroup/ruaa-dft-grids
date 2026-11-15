@@ -209,7 +209,7 @@ range, and $n_3 = 3 n_\mathrm{atom}$.
 | visitor block | `[nsel, 3, natm, 3]` | same flattening as one point of `ddw` / `ddc` |
 | `gradient_at` return | `(f64, [nsel, 3])` | `slot*3 + t`; unit quadrature |
 | `hessian_at` return | `[nsel, 3, natm, 3]` | `((slot*3+t)*natm + B)*3 + s`; unit quadrature |
-| `fill_values` `BatchBuffer` | `[B]` / `[B, 3]` | value-only arrays, see below |
+| `fill_points` / `fill_plan` `BatchBuffer` | `[B]` / `[B, 3]` | value-only arrays, see below |
 
 `DerivContract::exact(data, nset)` infers `cols = data.len()/nset`; this is
 the usual `[nset, B]` tensor for one range. `DerivContract::new(data, nset,
@@ -433,9 +433,10 @@ store being evaluated: `GridPlan::parent_of`/`local_coord`/`quad_weight` for
 streaming, or `MolecularGrid::atom_idx`/`coords`/`quad_weights` for a
 materialised grid (§7.2). The **derivative evaluator is point-order
 agnostic**: a consistently permuted plan or grid is evaluated unchanged. The
-value-only `PartitionEvaluator::fill_values` still walks atom-contiguous runs
-and therefore expects the original plan order; `order::GridOrder` remains a
-post-hoc permutation of a materialised grid / per-point derivative arrays.
+value-only `PartitionEvaluator::fill_plan` still walks atom-contiguous runs and
+therefore expects the original plan order; `fill_points` accepts an arbitrary
+point list.  `order::GridOrder` remains a post-hoc permutation of a
+materialised grid / per-point derivative arrays.
 
 ### 7.2 Grid-native evaluation
 

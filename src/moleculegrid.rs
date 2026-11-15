@@ -11,7 +11,8 @@
 //! quadrature weight** `q`, the **normalized partition fraction** `P`, and the
 //! source atom index.
 //!
-//! Pruning is deliberately not part of the build specification. The builders
+//! Post-build point pruning is deliberately not part of the build specification.
+//! The builders
 //! materialise the full point set; [`MolecularGrid::split`] applies a
 //! [`PostPrune`] policy afterwards and returns the retained and pruned grids.
 //! The retained grid is a self-contained point set with its own [`len`],

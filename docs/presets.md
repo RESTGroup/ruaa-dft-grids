@@ -334,7 +334,10 @@ does not carry a partition or radii choice.
 
 A single preset file is one topology.  A directory of program preset files can
 be indexed by a JSON **catalog**; the crate exposes the format and the loader,
-but ships no catalog and no program data.
+but ships no catalog and no program data.  The catalog and the preset files it
+references are JSON: TOML is the human-authoring form used in
+[§3](#3-the-complete-preset-file), and an entry that points at a `.toml` file
+fails to load.  Unknown keys in the catalog are rejected.
 
 ```json
 {
@@ -364,11 +367,16 @@ but ships no catalog and no program data.
 }
 ```
 
-`PresetCatalog::from_json_path` parses the catalog,
-`PresetCatalog::entry` looks up one entry, and `PresetEntry::load(base_dir)`
-reads the referenced `GridPreset`.  The loader resolves `file` relative to
-`base_dir`, rejects absolute paths and `..`, and applies the entry's
-`elements` range to the preset's `z_min`/`z_max` domain.  A
+`PresetCatalog::from_json_path` parses and validates the catalog
+(`from_json_str` parses only), `PresetCatalog::entry` looks up one entry, and
+`PresetEntry::load(base_dir)` reads the referenced `GridPreset`.  Validation
+requires unique preset names and file paths within a program and a valid
+element range on every grid entry.  The loader resolves `file` relative to
+`base_dir`, rejects absolute paths and `..`, requires the preset's `name` to
+match the entry, and applies the entry's `elements` range to the preset's
+`z_min`/`z_max` domain.  The catalog range must stay inside the domain the
+file itself declares (a wider range is an error, not an implicit widening).
+Errors after a load name the file path and the entry.  A
 `"kind": "schedule"` entry is metadata, not a grid; loading it returns
 `UnsupportedGrid`.
 

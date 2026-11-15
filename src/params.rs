@@ -1,11 +1,10 @@
 //! Shared data tables: PySCF preset/radial/radii data and the generic
 //! periodic-table lookup.
 //!
-//! The crate no longer embeds ORCA or Gaussian parameter tables.  Those are
-//! supplied by callers as a [`crate::preset::GridPreset`]; see the companion
-//! local preset workspace.  The tables that remain here are the PySCF
-//! open-source tables (Apache-2.0, with its NOTICE reproduced in the crate
-//! `NOTICE`) and the mathematical Lebedev size set.
+//! The crate embeds no ORCA or Gaussian parameter tables.  Those are supplied
+//! by callers as a [`crate::preset::GridPreset`]; the tables that remain here
+//! are the PySCF open-source tables (Apache-2.0, with its NOTICE reproduced in
+//! the crate `NOTICE`) and the mathematical Lebedev size set.
 //!
 //! * `PYSCF_LEBEDEV_NGRID`, `PYSCF_RAD_GRIDS`, `PYSCF_ANG_ORDER` — PySCF
 //!   `pyscf.dft.gen_grid` level defaults.

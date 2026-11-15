@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/ruaa-dft-grids.svg)](https://crates.io/crates/ruaa-dft-grids)
 [![docs.rs](https://docs.rs/ruaa-dft-grids/badge.svg)](https://docs.rs/ruaa-dft-grids)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/RESTGroup/ruaa-dft-grids/blob/main/LICENSE)
 
 Molecular DFT numerical-integration grids for Rust.  The crate generates
 atom-centred radial and angular quadratures, applies angular pruning,
@@ -142,9 +142,10 @@ a program preset state, for example, a Z = 1–112 coverage limit.
 
 A directory of preset files can be indexed by a JSON catalog
 (`catalog::PresetCatalog`).  The catalog records the program, category, file
-path, grid description and element range; `PresetEntry::load` reads the file
-and applies the range.  The crate ships the catalog model and loader, not the
-catalog or any program data:
+path, grid description and element range; `from_json_path` validates the index,
+and `PresetEntry::load` reads the referenced JSON preset and applies the range.
+The crate ships the catalog model and loader, not the catalog or any program
+data:
 
 ```rust,no_run
 use std::path::Path;
