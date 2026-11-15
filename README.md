@@ -293,6 +293,13 @@ cargo run --release --example user_derivatives
 cargo run --release --example user_sorting
 ```
 
+## Development
+
+This repository is fully driven by LLM agents: the code, tests, examples,
+documentation and commit history are produced by AI coding agents; a human
+maintainer sets the direction and reviews every change.  Each commit records
+the agent and the model that produced it in its `Co-authored-by` trailers.
+
 ## Status
 
 The crate is at `0.1.x`.  The API is not frozen yet; lower-level types may be
