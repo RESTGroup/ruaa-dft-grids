@@ -80,6 +80,22 @@ fn default_true() -> bool {
     true
 }
 
+fn default_z_min() -> u32 {
+    1
+}
+
+fn default_z_max() -> u32 {
+    118
+}
+
+fn is_default_z_min(value: &u32) -> bool {
+    *value == 1
+}
+
+fn is_default_z_max(value: &u32) -> bool {
+    *value == 118
+}
+
 fn is_true(value: &bool) -> bool {
     *value
 }
@@ -393,6 +409,10 @@ impl ElementRangeDefault {
 pub struct GridPreset {
     /// Informational preset name.
     pub name: String,
+    /// Lowest nuclear charge the preset covers (inclusive).  Default `1`.
+    pub z_min: u32,
+    /// Highest nuclear charge the preset covers (inclusive).  Default `118`.
+    pub z_max: u32,
     /// Radial node mapping shared by every element.
     pub radial: Radial,
     /// Whether the molecular radial cutoff
@@ -435,6 +455,10 @@ pub struct ElementRangeEntry {
 struct GridPresetRepr {
     #[serde(default, skip_serializing_if = "is_empty_string")]
     name: String,
+    #[serde(default = "default_z_min", skip_serializing_if = "is_default_z_min")]
+    z_min: u32,
+    #[serde(default = "default_z_max", skip_serializing_if = "is_default_z_max")]
+    z_max: u32,
     radial: Radial,
     #[serde(default, skip_serializing_if = "is_false")]
     molecular_cutoffs: bool,
@@ -476,6 +500,10 @@ struct ElementFields {
 struct GridPresetDe {
     #[serde(default)]
     name: String,
+    #[serde(default = "default_z_min")]
+    z_min: u32,
+    #[serde(default = "default_z_max")]
+    z_max: u32,
     radial: Radial,
     #[serde(default)]
     molecular_cutoffs: bool,
@@ -494,6 +522,8 @@ impl serde::Serialize for GridPreset {
     ) -> std::result::Result<S::Ok, S::Error> {
         let repr = GridPresetRepr {
             name: self.name.clone(),
+            z_min: self.z_min,
+            z_max: self.z_max,
             radial: self.radial,
             molecular_cutoffs: self.molecular_cutoffs,
             default: self.default.clone(),
@@ -551,6 +581,8 @@ impl<'de> serde::Deserialize<'de> for GridPreset {
         }
         Ok(Self {
             name: repr.name,
+            z_min: repr.z_min,
+            z_max: repr.z_max,
             radial: repr.radial,
             molecular_cutoffs: repr.molecular_cutoffs,
             default: repr.default,
@@ -599,6 +631,8 @@ impl GridPreset {
     pub fn new(radial: Radial) -> Self {
         Self {
             name: String::new(),
+            z_min: 1,
+            z_max: 118,
             radial,
             molecular_cutoffs: false,
             default: None,
@@ -612,6 +646,24 @@ impl GridPreset {
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
         self.name = name.into();
         self
+    }
+
+    /// Set the element domain `z_min..=z_max` (both inclusive).
+    ///
+    /// A preset with no explicit element entry for a charge outside the
+    /// domain returns [`Error::MissingElementData`] from
+    /// [`Self::element`] instead of falling back to the preset default.
+    #[must_use]
+    pub fn with_element_range(mut self, z_min: u32, z_max: u32) -> Self {
+        self.z_min = z_min;
+        self.z_max = z_max;
+        self
+    }
+
+    /// Whether `z` is inside the preset's element domain.
+    #[must_use]
+    pub fn supports(&self, z: u32) -> bool {
+        self.z_min <= z && z <= self.z_max
     }
 
     /// Set the fallback element parameters.
@@ -653,6 +705,12 @@ impl GridPreset {
         if !(1..=118).contains(&z) {
             return Err(Error::UnsupportedElement { z });
         }
+        if !self.supports(z) {
+            return Err(Error::MissingElementData {
+                z,
+                table: "grid preset",
+            });
+        }
         self.elements
             .get(&z)
             .or_else(|| {
@@ -693,6 +751,21 @@ impl GridPreset {
     /// [`Error::UnsupportedLebedevGrid`] for an unsupported angular size, and
     /// [`Error::InvalidArgument`] for a malformed shell/scale/cutoff value.
     pub fn validate(&self) -> Result<()> {
+        if self.z_min == 0 || self.z_min > self.z_max || self.z_max > 118 {
+            return Err(Error::InvalidArgument {
+                argument: "preset element range",
+            });
+        }
+        for &z in self.elements.keys() {
+            if !(1..=118).contains(&z) {
+                return Err(Error::UnsupportedElement { z });
+            }
+            if !self.supports(z) {
+                return Err(Error::InvalidArgument {
+                    argument: "preset element range",
+                });
+            }
+        }
         for (index, range) in self.defaults.iter().enumerate() {
             if !(1..=118).contains(&range.z_min) || !(1..=118).contains(&range.z_max) {
                 return Err(Error::UnsupportedElement {
@@ -1018,6 +1091,58 @@ mod tests {
         let grid = preset.atomic_grid(1).unwrap();
         assert_eq!(grid.shell_angular, vec![55, 105, 350]);
         assert_eq!(grid.points.len(), 55 + 105 + 350);
+    }
+
+    #[test]
+    fn element_range_is_enforced() {
+        let preset = GridPreset::new(Radial::TreutlerAhlrichs)
+            .with_element_range(1, 2)
+            .with_element(1, hydrogen());
+        assert!(preset.supports(1));
+        assert!(preset.supports(2));
+        assert!(!preset.supports(3));
+        assert!(matches!(
+            preset.element(3),
+            Err(Error::MissingElementData {
+                z: 3,
+                table: "grid preset"
+            })
+        ));
+        assert!(matches!(
+            preset.atomic_grid(3),
+            Err(Error::MissingElementData {
+                z: 3,
+                table: "grid preset"
+            })
+        ));
+    }
+
+    #[test]
+    fn element_range_round_trips_through_the_file_form() {
+        let preset = GridPreset::new(Radial::TreutlerAhlrichs)
+            .with_element_range(3, 10)
+            .with_element(3, hydrogen())
+            .with_element(10, hydrogen());
+        let text = toml::to_string(&preset).unwrap();
+        assert!(text.contains("z_min = 3"), "{text}");
+        assert!(text.contains("z_max = 10"), "{text}");
+        let reloaded: GridPreset = toml::from_str(&text).unwrap();
+        assert_eq!(reloaded.z_min, 3);
+        assert_eq!(reloaded.z_max, 10);
+        assert_eq!(preset, reloaded);
+    }
+
+    #[test]
+    fn element_range_rejects_an_entry_outside_the_domain() {
+        let preset = GridPreset::new(Radial::TreutlerAhlrichs)
+            .with_element_range(1, 2)
+            .with_element(6, hydrogen());
+        assert!(matches!(
+            preset.validate(),
+            Err(Error::InvalidArgument {
+                argument: "preset element range"
+            })
+        ));
     }
 
     #[test]

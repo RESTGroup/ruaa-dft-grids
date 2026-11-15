@@ -16,6 +16,7 @@ construction and the public API; they are offline and self-contained.
 | [`partition_weights.rs`](partition_weights.rs) | partition weights at caller-supplied points and the table path |
 | [`post_prune.rs`](post_prune.rs) | `PostPrune` policies and retained/pruned splits |
 | [`preset_api.rs`](preset_api.rs) | PySCF level 3 as a `GridPreset`, the committed preset file, inheritance order, topology errors |
+| [`preset_catalog.rs`](preset_catalog.rs) | the JSON preset catalog, element-domain enforcement, path safety, and an optional `RUAA_PRESET_DATA` external check |
 | [`user_workflows.rs`](user_workflows.rs) | consumer workflows: PySCF and data-driven presets -> `MolecularGrid`, weight derivatives, sorting, prune/sort/derive; mirrors [`../docs/user-guide.md`](../docs/user-guide.md) |
 
 The unit tests in `src/` cover the radial kernels, angular rules, pruning

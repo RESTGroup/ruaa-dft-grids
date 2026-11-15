@@ -135,6 +135,31 @@ opens PySCF's level 3 preset as data, ships the complete
 includes an optional `examples/presets/check_against_pyscf.py` cross-check
 against PySCF's own grid construction.
 
+A preset can declare the element charges it covers with `z_min`/`z_max`
+(default 1–118).  `element(z)` outside that domain returns
+`MissingElementData` instead of applying the shared `default` block, which lets
+a program preset state, for example, a Z = 1–112 coverage limit.
+
+A directory of preset files can be indexed by a JSON catalog
+(`catalog::PresetCatalog`).  The catalog records the program, category, file
+path, grid description and element range; `PresetEntry::load` reads the file
+and applies the range.  The crate ships the catalog model and loader, not the
+catalog or any program data:
+
+```rust,no_run
+use std::path::Path;
+use ruaa_dft_grids::catalog::PresetCatalog;
+
+fn main() -> ruaa_dft_grids::Result<()> {
+    let dir = Path::new("data");
+    let catalog = PresetCatalog::from_json_path(&dir.join("manifest.json"))?;
+    let preset = catalog.load_preset("demo", "demo-grid", dir)?;
+    let grid = preset.atomic_grid(8)?;
+    assert!(grid.nr() > 0);
+    Ok(())
+}
+```
+
 `AngularLayout` covers a fixed rule, a pruning policy, an explicit per-shell
 size list, a uniform product rule and a per-shell adaptive-phi product rule.  A construction outside those layouts can be
 assembled as an `AtomicGrid` and passed to
@@ -244,7 +269,7 @@ The long-form documentation is part of the API docs:
 | Page | Content |
 |---|---|
 | [User guide](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/guide/index.html) | consumer path with runnable examples |
-| [Presets](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/presets/index.html) | the built-in PySCF level, the full preset file, the PySCF cross-check |
+| [Presets](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/presets/index.html) | the built-in PySCF level, the full preset file, the element domain, the preset catalog, the PySCF cross-check |
 | [Numerical algorithms](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/algorithms/index.html) | radial maps, angular rules, pruning, partition formulas |
 | [Partition derivative API](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/partition_derivatives/index.html) | tensor layouts, streaming, selection, sorted grids |
 | [Becke derivatives](https://docs.rs/ruaa-dft-grids/latest/ruaa_dft_grids/doc/becke_derivatives/index.html) | the classic derivation |
@@ -263,6 +288,7 @@ The repository also contains runnable examples:
 ```text
 cargo run --release --example user_build
 cargo run --release --example user_presets
+cargo run --release --example preset_catalog -- /path/to/data/manifest.json demo demo-grid 8
 cargo run --release --example user_derivatives
 cargo run --release --example user_sorting
 ```

@@ -284,6 +284,23 @@ pub enum Error {
         /// The repeated source index.
         value: u32,
     },
+    /// A preset catalog file or a referenced preset file could not be read
+    /// or parsed.
+    #[error("preset catalog: {message}")]
+    Catalog {
+        /// Human-readable failure detail, including the path and the parser
+        /// message.
+        message: String,
+    },
+
+    /// A preset name is not present in the catalog.
+    #[error("preset `{name}` is not in program `{program}`")]
+    CatalogEntryNotFound {
+        /// Program key (for example `demo`).
+        program: String,
+        /// Preset name.
+        name: String,
+    },
 }
 
 impl From<crate::partition::PartitionConfigBuilderError> for Error {

@@ -304,6 +304,10 @@ does not carry a partition or radii choice.
 * A missing element entry is `MissingElementData { table: "grid preset" }`.
   The shipped file returns it for Z = 104–118; the built-in path reports the
   missing Treutler table instead.
+* A charge outside the preset's `z_min..=z_max` domain is also
+  `MissingElementData { table: "grid preset" }`; an invalid domain or an
+  element entry outside it is `InvalidArgument` with argument
+  `preset element range`.
 * A level above 9 is `UnsupportedLevel`; a charge outside Z = 1–118 is
   `UnsupportedElement`.
 * A partial element entry (an object in the `element` array or an
@@ -317,7 +321,85 @@ does not carry a partition or radii choice.
   split the range so that element is covered by a range without a cutoff, or
   use a preset that has no range cutoff.
 
-## 8. See also
+## 8. Catalog files
+
+A single preset file is one topology.  A directory of program preset files can
+be indexed by a JSON **catalog**; the crate exposes the format and the loader,
+but ships no catalog and no program data.
+
+```json
+{
+  "format": 1,
+  "programs": {
+    "demo": {
+      "software": "Demo 1.0",
+      "reference_basis": "example",
+      "parameters": "demo/parameters.toml",
+      "presets": [
+        {
+          "name": "demo-grid",
+          "category": "xc",
+          "file": "demo/xc/demo-grid.json",
+          "kind": "grid",
+          "grid": "default grid",
+          "scheme": 4,
+          "elements": [1, 112],
+          "reference_basis": "example",
+          "basis": null,
+          "basis_profile": null,
+          "notes": "caller metadata"
+        }
+      ]
+    }
+  }
+}
+```
+
+`PresetCatalog::from_json_path` parses the catalog,
+`PresetCatalog::entry` looks up one entry, and `PresetEntry::load(base_dir)`
+reads the referenced `GridPreset`.  The loader resolves `file` relative to
+`base_dir`, rejects absolute paths and `..`, and applies the entry's
+`elements` range to the preset's `z_min`/`z_max` domain.  A
+`"kind": "schedule"` entry is metadata, not a grid; loading it returns
+`UnsupportedGrid`.
+
+The element domain is the second half of the contract.  A preset whose
+`default` block is meant for Z = 1–112 sets
+
+```toml
+z_min = 1
+z_max = 112
+```
+
+and `preset.element(113)` then returns `MissingElementData` instead of using
+the shared default.  `PresetEntry::load` sets the range from the catalog, so
+a catalog cannot accidentally apply a program default beyond its coverage.
+
+```rust,no_run
+use std::path::Path;
+use ruaa_dft_grids::catalog::PresetCatalog;
+
+fn main() -> ruaa_dft_grids::Result<()> {
+    let dir = Path::new("data");
+    let catalog = PresetCatalog::from_json_path(&dir.join("manifest.json"))?;
+    let preset = catalog.load_preset("demo", "demo-grid", dir)?;
+    let grid = preset.atomic_grid(8)?;
+    assert!(grid.nr() > 0);
+    Ok(())
+}
+```
+
+`examples/preset_catalog.rs` runs the same path from the command line:
+
+```text
+cargo run --example preset_catalog -- /path/to/data/manifest.json demo demo-grid 8
+```
+
+The optional `tests/preset_catalog.rs` external test reads a catalog from
+`RUAA_PRESET_DATA` when that variable is set; the tracked test data is a tiny
+temporary catalog, so the repository carries no program data.
+
+## 9. See also
 
 * `examples/user_presets.rs` — the built-in preset, the data preset, the file,
   the override and the dump mode.

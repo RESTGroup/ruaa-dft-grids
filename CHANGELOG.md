@@ -32,6 +32,21 @@ out explicitly.
   `build_molecular_grid_from_plan` with `GridSpec::custom`) is the extension
   point for caller-built atomic grids.
 
+- `GridPreset` carries an explicit element domain (`z_min`, `z_max`,
+  `with_element_range`, `supports`).  `element(z)` and `atomic_grid(z)` return
+  `MissingElementData { table: "grid preset" }` outside it instead of applying
+  the preset default to an uncovered charge; `GridPreset::validate` rejects an
+  empty/reversed domain or an element entry outside it.  This lets a preset
+  state a Z = 1–112 coverage limit.
+- New `catalog` module: `PresetCatalog`, `ProgramCatalog`, `PresetEntry` and
+  `PresetKind` describe a JSON index over a directory of preset files.  The
+  loader is data-free: `PresetCatalog::from_json_path`/`from_json_str` parse
+  the catalog, `PresetEntry::load` reads one referenced `GridPreset`, and the
+  entry's `elements` range is applied to the preset's `z_min`/`z_max`.
+  Entry paths must be relative and may not contain `..`.  The crate adds
+  `serde_json` for this caller-data format; it still ships no catalog or
+  program data.
+
 ### PySCF path
 
 - `pyscf::angular_count` resolves a PySCF `LEBEDEV_ORDER` key (for example

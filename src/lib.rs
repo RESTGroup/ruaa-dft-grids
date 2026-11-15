@@ -145,7 +145,7 @@
 //! | Page | What it covers |
 //! |---|---|
 //! | [User guide](doc::guide) | geometry -> preset -> grid -> derivatives -> ordering |
-//! | [Presets](doc::presets) | the built-in PySCF level, preset files, the PySCF cross-check |
+//! | [Presets](doc::presets) | the built-in PySCF level, preset files, the element domain, the preset catalog, the PySCF cross-check |
 //! | [Numerical algorithms](doc::algorithms) | radial maps, angular rules, pruning and partition formulas |
 //! | [Partition derivative API](doc::partition_derivatives) | tensor layouts, streaming, selection, sorted grids |
 //! | [Becke derivatives](doc::becke_derivatives) | derivation of the classic Becke gradient and Hessian |
@@ -223,6 +223,7 @@ mod readme_doctests {
 
 pub mod angular;
 pub mod atomgrid;
+pub mod catalog;
 pub mod doc;
 pub mod error;
 pub mod grid;
