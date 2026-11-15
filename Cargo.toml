@@ -35,7 +35,9 @@ rayon = "1.8"
 derive_builder = "0.20"
 lightweight-simd = "0.1.1"
 serde = { version = "1", features = ["derive", "rc"] }
-serde_json = "1"
+# Preset files carry full-precision radial scales and cutoffs; the default
+# fast float parser can shift them by one ulp.
+serde_json = { version = "1", features = ["float_roundtrip"] }
 thiserror = "2.0"
 
 [dev-dependencies]

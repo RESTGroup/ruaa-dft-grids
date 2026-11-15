@@ -320,3 +320,29 @@ n_rad = 75
     let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
     assert!(error.contains("elements"), "unexpected error: {error}");
 }
+
+#[test]
+fn json_floats_keep_their_exact_bits() {
+    // Full-precision values from the preset data; serde_json's default fast
+    // parser shifts both by one ulp, which changes every radial node.
+    let text = r#"
+name = "float"
+radial = "treutler_ahlrichs"
+
+[default]
+n_rad = 50
+radial_scale = 1.2536105399999997
+cutoff = 15.300132790543707
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let preset: GridPreset = toml::from_str(text).unwrap();
+    let json = serde_json::to_string(&preset).unwrap();
+    let reloaded: GridPreset = serde_json::from_str(&json).unwrap();
+    assert_eq!(preset, reloaded);
+
+    let scale: f64 = "1.2536105399999997".parse().unwrap();
+    let cutoff: f64 = "15.300132790543707".parse().unwrap();
+    let element = reloaded.element(1).unwrap();
+    assert_eq!(element.radial_scale.to_bits(), scale.to_bits());
+    assert_eq!(element.cutoff.unwrap().to_bits(), cutoff.to_bits());
+}

@@ -87,6 +87,9 @@ out explicitly.
 - `GridPreset` pruning uses the exact per-shell `r/xi` ratios from the full
   nominal shell generation; truncated (cutoff-limited) grids now classify
   the retained shells correctly.
+- Preset JSON files are parsed with `serde_json`'s `float_roundtrip` feature,
+  so a full-precision radial scale or cutoff keeps its exact bits instead of
+  shifting by one ulp.
 - The Lebedev generator was replaced with the Apache-2.0
   `rstsr-sci-traits` implementation; the point order and rule values are
   unchanged.
