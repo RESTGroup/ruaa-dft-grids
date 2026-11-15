@@ -231,6 +231,7 @@ fn validate_size(n_ang: usize) -> Result<()> {
 
 /// Radial and angular parameters for one element.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ElementPreset {
     /// Number of nominal radial shells.
     pub n_rad: usize,
@@ -482,21 +483,70 @@ struct ElementPatch {
     fields: ElementFields,
 }
 
-#[derive(serde::Deserialize, Default)]
+#[derive(Default)]
 struct ElementFields {
-    #[serde(default)]
     n_rad: Option<usize>,
-    #[serde(default)]
     radial_scale: Option<f64>,
-    #[serde(default)]
     cutoff: Option<f64>,
-    #[serde(default)]
     generate_all: Option<bool>,
-    #[serde(default)]
     angular: Option<AngularLayout>,
 }
 
+/// Partial element fields, with unknown keys rejected.
+///
+/// This type is flattened into element and range entries, so a `derive`d
+/// deserializer cannot use `deny_unknown_fields`; the explicit map visitor
+/// enforces the same strictness for the whole file form.
+impl<'de> serde::Deserialize<'de> for ElementFields {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &["n_rad", "radial_scale", "cutoff", "generate_all", "angular"];
+        struct FieldsVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for FieldsVisitor {
+            type Value = ElementFields;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("element fields")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> std::result::Result<ElementFields, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut fields = ElementFields::default();
+                while let Some(key) = map.next_key::<String>()? {
+                    match key.as_str() {
+                        "n_rad" => fields.n_rad = Some(map.next_value()?),
+                        "radial_scale" => fields.radial_scale = Some(map.next_value()?),
+                        "cutoff" => fields.cutoff = Some(map.next_value()?),
+                        "generate_all" => fields.generate_all = Some(map.next_value()?),
+                        "angular" => fields.angular = Some(map.next_value()?),
+                        other => return Err(serde::de::Error::unknown_field(other, FIELDS)),
+                    }
+                }
+                Ok(fields)
+            }
+        }
+
+        deserializer.deserialize_map(FieldsVisitor)
+    }
+}
+
+/// One `[[range]]` entry as read from a file.  The element fields are
+/// complete: a range carries the parameters that its elements inherit.
 #[derive(serde::Deserialize)]
+struct ElementRangeWire {
+    z_min: u32,
+    z_max: u32,
+    #[serde(flatten)]
+    fields: ElementFields,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct GridPresetDe {
     #[serde(default)]
     name: String,
@@ -510,7 +560,7 @@ struct GridPresetDe {
     #[serde(default)]
     default: Option<ElementPreset>,
     #[serde(default, rename = "range")]
-    defaults: Vec<ElementRangeEntry>,
+    defaults: Vec<ElementRangeWire>,
     #[serde(default, rename = "element")]
     elements: Vec<ElementPatch>,
 }
@@ -554,11 +604,16 @@ impl<'de> serde::Deserialize<'de> for GridPreset {
         deserializer: D,
     ) -> std::result::Result<Self, D::Error> {
         let repr = GridPresetDe::deserialize(deserializer)?;
-        let defaults: Vec<ElementRangeDefault> = repr
-            .defaults
-            .into_iter()
-            .map(|range| ElementRangeDefault::new(range.z_min, range.z_max, range.element))
-            .collect();
+        let mut defaults: Vec<ElementRangeDefault> = Vec::with_capacity(repr.defaults.len());
+        for range in repr.defaults {
+            let element = range.fields.merge(None).map_err(|missing| {
+                serde::de::Error::custom(format!(
+                    "range {}..={} is missing `{missing}`",
+                    range.z_min, range.z_max
+                ))
+            })?;
+            defaults.push(ElementRangeDefault::new(range.z_min, range.z_max, element));
+        }
         let mut elements = BTreeMap::new();
         for patch in repr.elements {
             let base = defaults

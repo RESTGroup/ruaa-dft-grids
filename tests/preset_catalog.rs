@@ -23,45 +23,29 @@ const TINY_PRESET: &str = r#"{
   }
 }"#;
 
-fn catalog_json() -> String {
-    r#"{
-      "format": 1,
-      "description": "test catalog",
-      "programs": {
-        "demo": {
-          "software": "Demo 1.0",
-          "reference_basis": "none",
-          "presets": [
-            {
-              "name": "tiny",
-              "category": "xc",
-              "file": "tiny.json",
-              "kind": "grid",
-              "grid": "tiny grid",
-              "elements": [1, 2]
-            },
-            {
-              "name": "escape",
-              "category": "xc",
-              "file": "../escape.json",
-              "elements": [1, 2]
-            },
-            {
-              "name": "noe",
-              "category": "xc",
-              "file": "tiny.json"
-            },
-            {
-              "name": "schedule",
-              "category": "response",
-              "file": "schedule.json",
-              "kind": "schedule"
-            }
-          ]
-        }
-      }
-    }"#
-    .to_string()
+const TINY_ENTRY: &str =
+    r#"{"name": "tiny", "category": "xc", "file": "tiny.json", "elements": [1, 2]}"#;
+const SCHEDULE_ENTRY: &str =
+    r#"{"name": "schedule", "category": "response", "file": "schedule.json", "kind": "schedule"}"#;
+
+fn catalog_json(entries: &str) -> String {
+    format!(
+        r#"{{"format": 1, "description": "test catalog", "programs": {{"demo": {{"software": "Demo 1.0", "presets": [{entries}]}}}}}}"#
+    )
+}
+
+fn valid_catalog_json() -> String {
+    catalog_json(&format!("{TINY_ENTRY}, {SCHEDULE_ENTRY}"))
+}
+
+/// A catalog with every index problem: an unsafe path, a duplicate file and a
+/// grid entry without an element range.  Used through `from_json_str` so the
+/// load path can be tested entry by entry.
+fn bad_catalog_json() -> String {
+    let escape =
+        r#"{"name": "escape", "category": "xc", "file": "../escape.json", "elements": [1, 2]}"#;
+    let noe = r#"{"name": "noe", "category": "xc", "file": "tiny.json"}"#;
+    catalog_json(&format!("{TINY_ENTRY}, {escape}, {noe}, {SCHEDULE_ENTRY}"))
 }
 
 fn temp_dir() -> PathBuf {
@@ -69,36 +53,41 @@ fn temp_dir() -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!(
+    let root = std::env::temp_dir().join(format!(
         "ruaa-dft-grids-catalog-{}-{nanos}",
         std::process::id()
     ));
-    std::fs::create_dir_all(&dir).unwrap();
-    dir
+    let data = root.join("data");
+    std::fs::create_dir_all(&data).unwrap();
+    data
 }
 
-fn write_catalog(dir: &Path) -> PathBuf {
+fn cleanup(dir: &Path) {
+    std::fs::remove_dir_all(dir.parent().unwrap()).unwrap();
+}
+
+fn write_catalog(dir: &Path, manifest: &str) -> PathBuf {
     std::fs::write(dir.join("tiny.json"), TINY_PRESET).unwrap();
     let path = dir.join("manifest.json");
-    std::fs::write(&path, catalog_json()).unwrap();
+    std::fs::write(&path, manifest).unwrap();
     path
 }
 
 #[test]
 fn catalog_entries_carry_the_metadata() {
-    let catalog = PresetCatalog::from_json_str(&catalog_json()).unwrap();
+    let catalog = PresetCatalog::from_json_str(&valid_catalog_json()).unwrap();
     let entry = catalog.entry("demo", "tiny").unwrap();
     assert_eq!(entry.kind, PresetKind::Grid);
     assert_eq!(entry.element_range(), Some((1, 2)));
     assert!(entry.is_grid());
-    assert_eq!(catalog.grid_entries("demo").count(), 3);
+    assert_eq!(catalog.grid_entries("demo").count(), 1);
     assert!(catalog.entry("demo", "missing").is_none());
 }
 
 #[test]
 fn catalog_loads_a_grid_and_applies_the_element_range() {
     let dir = temp_dir();
-    let path = write_catalog(&dir);
+    let path = write_catalog(&dir, &valid_catalog_json());
     let catalog = PresetCatalog::from_json_path(&path).unwrap();
     let preset = catalog.load_preset("demo", "tiny", &dir).unwrap();
     assert_eq!(preset.z_min, 1);
@@ -111,63 +100,174 @@ fn catalog_loads_a_grid_and_applies_the_element_range() {
             table: "grid preset"
         })
     ));
-    std::fs::remove_dir_all(dir).unwrap();
+    cleanup(&dir);
+}
+
+#[test]
+fn from_json_path_validates_the_index() {
+    let dir = temp_dir();
+
+    let duplicate_name = catalog_json(&format!(
+        r#"{TINY_ENTRY}, {{"name": "tiny", "category": "xc", "file": "other.json", "elements": [1, 2]}}"#
+    ));
+    let error = PresetCatalog::from_json_path(&write_catalog(&dir, &duplicate_name))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("duplicate preset name"), "{error}");
+
+    let duplicate_file = catalog_json(&format!(
+        r#"{TINY_ENTRY}, {{"name": "other", "category": "xc", "file": "tiny.json", "elements": [1, 2]}}"#
+    ));
+    let error = PresetCatalog::from_json_path(&write_catalog(&dir, &duplicate_file))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("reuses file"), "{error}");
+
+    let unsafe_path = catalog_json(&format!(
+        r#"{TINY_ENTRY}, {{"name": "escape", "category": "xc", "file": "../escape.json", "elements": [1, 2]}}"#
+    ));
+    let error = PresetCatalog::from_json_path(&write_catalog(&dir, &unsafe_path))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("may not escape"), "{error}");
+
+    let no_elements = catalog_json(&format!(
+        r#"{TINY_ENTRY}, {{"name": "noe", "category": "xc", "file": "other.json"}}"#
+    ));
+    let error = PresetCatalog::from_json_path(&write_catalog(&dir, &no_elements))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("no element range"), "{error}");
+
+    cleanup(&dir);
 }
 
 #[test]
 fn grid_entries_must_declare_an_element_range() {
     let dir = temp_dir();
-    let path = write_catalog(&dir);
-    let catalog = PresetCatalog::from_json_path(&path).unwrap();
-    assert!(matches!(
-        catalog.load_preset("demo", "noe", &dir),
-        Err(Error::Catalog { .. })
-    ));
-    std::fs::remove_dir_all(dir).unwrap();
+    std::fs::write(dir.join("tiny.json"), TINY_PRESET).unwrap();
+    let catalog = PresetCatalog::from_json_str(&bad_catalog_json()).unwrap();
+    let error = catalog
+        .load_preset("demo", "noe", &dir)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("no element range"), "{error}");
+    cleanup(&dir);
 }
 
 #[test]
 fn schedule_entries_are_not_grids() {
     let dir = temp_dir();
-    let path = write_catalog(&dir);
+    let path = write_catalog(&dir, &valid_catalog_json());
     let catalog = PresetCatalog::from_json_path(&path).unwrap();
     assert!(matches!(
         catalog.load_preset("demo", "schedule", &dir),
         Err(Error::UnsupportedGrid { .. })
     ));
-    std::fs::remove_dir_all(dir).unwrap();
+    cleanup(&dir);
 }
 
 #[test]
 fn entry_paths_cannot_escape_the_data_directory() {
     let dir = temp_dir();
-    let path = write_catalog(&dir);
-    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let catalog = PresetCatalog::from_json_str(&bad_catalog_json()).unwrap();
     assert!(matches!(
         catalog.load_preset("demo", "escape", &dir),
         Err(Error::Catalog { .. })
     ));
     // Even if the target exists above the data directory, the loader refuses.
-    std::fs::write(dir.parent().unwrap().join("escape.json"), TINY_PRESET).unwrap();
+    let above = dir.parent().unwrap().join("escape.json");
+    std::fs::write(&above, TINY_PRESET).unwrap();
     assert!(matches!(
         catalog.load_preset("demo", "escape", &dir),
         Err(Error::Catalog { .. })
     ));
-    std::fs::remove_dir_all(dir).unwrap();
+    cleanup(&dir);
 }
 
 #[test]
 fn missing_entries_and_bad_formats_are_errors() {
-    let catalog = PresetCatalog::from_json_str(&catalog_json()).unwrap();
+    let catalog = PresetCatalog::from_json_str(&valid_catalog_json()).unwrap();
     assert!(matches!(
         catalog.load_preset("demo", "missing", Path::new(".")),
         Err(Error::CatalogEntryNotFound { .. })
     ));
-    let bad = catalog_json().replace("\"format\": 1", "\"format\": 2");
+    let bad = valid_catalog_json().replace("\"format\": 1", "\"format\": 2");
     assert!(matches!(
         PresetCatalog::from_json_str(&bad),
         Err(Error::Catalog { .. })
     ));
+}
+
+#[test]
+fn unknown_keys_are_rejected() {
+    let bad_program = valid_catalog_json().replace("\"software\"", "\"softwre\"");
+    let error = PresetCatalog::from_json_str(&bad_program)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("softwre"), "{error}");
+
+    let bad_entry = valid_catalog_json().replace("\"elements\"", "\"elemnts\"");
+    let error = PresetCatalog::from_json_str(&bad_entry)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("elemnts"), "{error}");
+
+    let bad_preset = TINY_PRESET.replace(
+        "\"radial_scale\": 0.8",
+        "\"radial_scale\": 0.8, \"cuttoff\": 9.0",
+    );
+    let error = serde_json::from_str::<ruaa_dft_grids::preset::GridPreset>(&bad_preset)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("cuttoff"), "{error}");
+}
+
+#[test]
+fn catalog_range_cannot_widen_the_preset_domain() {
+    let dir = temp_dir();
+    let wide = catalog_json(
+        r#"{"name": "tiny", "category": "xc", "file": "tiny.json", "elements": [1, 4]}"#,
+    );
+    let path = write_catalog(&dir, &wide);
+    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let error = catalog
+        .load_preset("demo", "tiny", &dir)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("exceeds the preset domain"), "{error}");
+    cleanup(&dir);
+}
+
+#[test]
+fn preset_name_must_match_the_entry_name() {
+    let dir = temp_dir();
+    let mismatch = catalog_json(
+        r#"{"name": "other", "category": "xc", "file": "tiny.json", "elements": [1, 2]}"#,
+    );
+    let path = write_catalog(&dir, &mismatch);
+    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let error = catalog
+        .load_preset("demo", "other", &dir)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("does not match catalog entry"), "{error}");
+    cleanup(&dir);
+}
+
+#[test]
+fn validation_errors_name_the_entry_and_file() {
+    let dir = temp_dir();
+    let path = write_catalog(&dir, &valid_catalog_json());
+    let bad_preset = TINY_PRESET.replace("\"n_ang\": 50", "\"n_ang\": 999");
+    std::fs::write(dir.join("tiny.json"), bad_preset).unwrap();
+    let catalog = PresetCatalog::from_json_path(&path).unwrap();
+    let error = catalog
+        .load_preset("demo", "tiny", &dir)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("tiny") && error.contains("999"), "{error}");
+    cleanup(&dir);
 }
 
 /// Optional external data check.  Run it explicitly with

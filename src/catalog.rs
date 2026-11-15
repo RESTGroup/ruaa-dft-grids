@@ -5,8 +5,12 @@
 //! path, the element domain and free-form provenance labels.  The catalog is
 //! ordinary caller data; this crate ships no catalog and no program tables.
 //!
-//! The file format is JSON.  A catalog has this shape (the values are the
-//! caller's):
+//! Both the catalog and the preset files it references are JSON.  TOML is
+//! the human-authoring form described on the
+//! [presets page](crate::doc::presets); a catalog entry that points at a
+//! `.toml` file fails to load.  Unknown keys are rejected at every level.
+//!
+//! A catalog has this shape (the values are the caller's):
 //!
 //! ```json
 //! {
@@ -42,7 +46,10 @@
 //! The catalog loader never embeds a path: the caller supplies the catalog
 //! path and the directory that the entry paths are relative to.  Entry paths
 //! must be relative and may not contain `..`, so a catalog cannot escape its
-//! data directory.
+//! data directory.  [`PresetCatalog::from_json_path`] validates the index
+//! (unique names and paths, a valid element range on every grid entry);
+//! [`PresetCatalog::from_json_str`] parses only, so an embedded or partially
+//! built catalog can be inspected with [`PresetCatalog::validate`] separately.
 //!
 //! # Example
 //!
@@ -78,6 +85,7 @@ use crate::preset::GridPreset;
 
 /// One preset catalog.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresetCatalog {
     /// Catalog format version.  Version 1 is the only version currently
     /// understood.
@@ -91,6 +99,7 @@ pub struct PresetCatalog {
 
 /// One program's preset entries.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProgramCatalog {
     /// Program name and version for humans.
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -120,6 +129,7 @@ pub enum PresetKind {
 
 /// One catalog entry.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresetEntry {
     /// Preset name, unique within the program.
     pub name: String,
@@ -155,11 +165,11 @@ pub struct PresetEntry {
 }
 
 impl PresetCatalog {
-    /// Parse a catalog from JSON text.
+    /// Parse a catalog from JSON text without validating the index.
     ///
     /// # Errors
-    /// [`Error::Catalog`] for malformed JSON or an unsupported format
-    /// version.
+    /// [`Error::Catalog`] for malformed JSON, an unknown key or an
+    /// unsupported format version.
     pub fn from_json_str(text: &str) -> Result<Self> {
         let catalog: Self = serde_json::from_str(text).map_err(|error| Error::Catalog {
             message: format!("catalog JSON: {error}"),
@@ -172,20 +182,91 @@ impl PresetCatalog {
         Ok(catalog)
     }
 
-    /// Read and parse a catalog file.
+    /// Read, parse and validate a catalog file.
     ///
     /// # Errors
-    /// [`Error::Catalog`] for an I/O or parse failure.
+    /// [`Error::Catalog`] for an I/O or parse failure, or for a failed
+    /// [`Self::validate`] check.
     pub fn from_json_path(path: &Path) -> Result<Self> {
         let text = std::fs::read_to_string(path).map_err(|error| Error::Catalog {
             message: format!("{}: {error}", path.display()),
         })?;
-        Self::from_json_str(&text).map_err(|error| match error {
+        let catalog = Self::from_json_str(&text).map_err(|error| match error {
             Error::Catalog { message } => Error::Catalog {
                 message: format!("{}: {message}", path.display()),
             },
             other => other,
-        })
+        })?;
+        catalog.validate().map_err(|error| match error {
+            Error::Catalog { message } => Error::Catalog {
+                message: format!("{}: {message}", path.display()),
+            },
+            other => other,
+        })?;
+        Ok(catalog)
+    }
+
+    /// Validate the catalog index without reading the preset files.
+    ///
+    /// Checks that every grid entry declares a valid element range, that
+    /// entry names and file paths are unique within a program, and that every
+    /// path is relative and contained.  Use [`Self::load_preset`] (or
+    /// [`PresetEntry::load`]) to check the referenced files themselves.
+    ///
+    /// [`Self::from_json_path`] runs this check; [`Self::from_json_str`] does
+    /// not, so tests and embedded catalogs can be inspected before they are
+    /// complete.
+    ///
+    /// # Errors
+    /// [`Error::Catalog`] for every failed check.
+    pub fn validate(&self) -> Result<()> {
+        if self.format != 1 {
+            return Err(Error::Catalog {
+                message: format!("unsupported catalog format {} (expected 1)", self.format),
+            });
+        }
+        for (program, catalog) in &self.programs {
+            let mut names = std::collections::BTreeSet::new();
+            let mut files = std::collections::BTreeSet::new();
+            for entry in &catalog.presets {
+                if !names.insert(entry.name.as_str()) {
+                    return Err(Error::Catalog {
+                        message: format!(
+                            "program `{program}`: duplicate preset name `{}`",
+                            entry.name
+                        ),
+                    });
+                }
+                if !files.insert(entry.file.as_str()) {
+                    return Err(Error::Catalog {
+                        message: format!(
+                            "program `{program}`: preset `{}` reuses file `{}`",
+                            entry.name, entry.file
+                        ),
+                    });
+                }
+                resolve_entry_path(Path::new("."), &entry.file)?;
+                if entry.is_grid() {
+                    let Some([z_min, z_max]) = entry.elements else {
+                        return Err(Error::Catalog {
+                            message: format!(
+                                "program `{program}`: grid entry `{}` has no element range",
+                                entry.name
+                            ),
+                        });
+                    };
+                    if z_min == 0 || z_min > z_max || z_max > 118 {
+                        return Err(Error::Catalog {
+                            message: format!(
+                                "program `{program}`: grid entry `{}` has invalid element range [{z_min}, {z_max}]",
+                                entry.name
+                            ),
+                        });
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
     /// One program's catalog.
@@ -208,7 +289,8 @@ impl PresetCatalog {
     ///
     /// # Errors
     /// [`Error::CatalogEntryNotFound`] for an unknown name, and
-    /// [`Error::Catalog`] for a missing/unreadable/malformed preset file.
+    /// [`Error::Catalog`] for a missing, unreadable or malformed preset
+    /// file, a name/domain mismatch, or a failed preset validation.
     /// A non-grid entry returns [`Error::UnsupportedGrid`].
     pub fn load_preset(&self, program: &str, name: &str, base_dir: &Path) -> Result<GridPreset> {
         self.entry(program, name)
@@ -253,9 +335,11 @@ impl PresetEntry {
     /// Load this entry as a [`GridPreset`].
     ///
     /// # Errors
-    /// [`Error::UnsupportedGrid`] for a non-grid entry, [`Error::Catalog`]
-    /// for an I/O or parse failure, and the preset validation errors after
-    /// the element range is applied.
+    /// [`Error::UnsupportedGrid`] for a non-grid entry, and [`Error::Catalog`]
+    /// for an I/O or parse failure, a preset name that differs from the
+    /// entry name, a catalog range that exceeds the preset's own domain, or
+    /// a failed preset validation (the message carries the file path and
+    /// entry name).
     pub fn load(&self, base_dir: &Path) -> Result<GridPreset> {
         if !self.is_grid() {
             return Err(Error::UnsupportedGrid {
@@ -264,13 +348,6 @@ impl PresetEntry {
             });
         }
         let path = resolve_entry_path(base_dir, &self.file)?;
-        let text = std::fs::read_to_string(&path).map_err(|error| Error::Catalog {
-            message: format!("{}: {error}", path.display()),
-        })?;
-        let mut preset: GridPreset =
-            serde_json::from_str(&text).map_err(|error| Error::Catalog {
-                message: format!("{}: {error}", path.display()),
-            })?;
         let Some([z_min, z_max]) = self.elements else {
             return Err(Error::Catalog {
                 message: format!(
@@ -288,9 +365,40 @@ impl PresetEntry {
                 ),
             });
         }
+        let text = std::fs::read_to_string(&path).map_err(|error| Error::Catalog {
+            message: format!("{}: {error}", path.display()),
+        })?;
+        let mut preset: GridPreset =
+            serde_json::from_str(&text).map_err(|error| Error::Catalog {
+                message: format!("{}: {error}", path.display()),
+            })?;
+        if !preset.name.is_empty() && preset.name != self.name {
+            return Err(Error::Catalog {
+                message: format!(
+                    "{}: preset name `{}` does not match catalog entry `{}`",
+                    path.display(),
+                    preset.name,
+                    self.name
+                ),
+            });
+        }
+        // The catalog cannot widen the coverage the file itself declares:
+        // that would silently apply the file's default block beyond its domain.
+        if z_min < preset.z_min || z_max > preset.z_max {
+            return Err(Error::Catalog {
+                message: format!(
+                    "{}: catalog range [{z_min}, {z_max}] exceeds the preset domain {}..={}",
+                    path.display(),
+                    preset.z_min,
+                    preset.z_max
+                ),
+            });
+        }
         preset.z_min = z_min;
         preset.z_max = z_max;
-        preset.validate()?;
+        preset.validate().map_err(|error| Error::Catalog {
+            message: format!("{}: preset `{}`: {error}", path.display(), self.name),
+        })?;
         Ok(preset)
     }
 }

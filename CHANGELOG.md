@@ -40,12 +40,16 @@ out explicitly.
   state a Z = 1–112 coverage limit.
 - New `catalog` module: `PresetCatalog`, `ProgramCatalog`, `PresetEntry` and
   `PresetKind` describe a JSON index over a directory of preset files.  The
-  loader is data-free: `PresetCatalog::from_json_path`/`from_json_str` parse
-  the catalog, `PresetEntry::load` reads one referenced `GridPreset`, and the
-  entry's `elements` range is applied to the preset's `z_min`/`z_max`.
-  Entry paths must be relative and may not contain `..`.  The crate adds
-  `serde_json` for this caller-data format; it still ships no catalog or
-  program data.
+  loader is data-free: `PresetCatalog::from_json_path` parses and validates
+  the index, `from_json_str` parses only, and `PresetEntry::load` reads one
+  referenced JSON `GridPreset` and applies the entry's `elements` range.
+  Entry paths must be relative and may not contain `..`; names and paths must
+  be unique and every grid entry must carry an element range.  The loader
+  refuses a preset whose name differs from the entry and a catalog range
+  wider than the preset's own domain.  The crate adds `serde_json` for this
+  caller-data format; it still ships no catalog or program data.
+- The preset and catalog file forms reject unknown keys at every level, so a
+  typo is an error instead of a silently ignored field.
 
 ### PySCF path
 

@@ -243,3 +243,80 @@ angular = { shells = [50, 110, 194, 302] }
     ));
     assert!(preset.atomic_grid(8).is_err());
 }
+
+#[test]
+fn unknown_keys_are_rejected() {
+    // Top-level typo.
+    let text = r#"
+radial = "treutler_ahlrichs"
+molecular_cutoff = true
+
+[[element]]
+z = 8
+n_rad = 20
+radial_scale = 0.9
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
+    assert!(
+        error.contains("molecular_cutoff"),
+        "unexpected error: {error}"
+    );
+
+    // Element-entry typo.
+    let text = r#"
+radial = "treutler_ahlrichs"
+
+[[element]]
+z = 8
+n_rad = 20
+radial_scale = 0.9
+cuttoff = 9.0
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
+    assert!(error.contains("cuttoff"), "unexpected error: {error}");
+
+    // Range-entry typo.
+    let text = r#"
+radial = "treutler_ahlrichs"
+
+[[range]]
+z_min = 3
+z_max = 10
+n_rad = 20
+radial_scale = 0.9
+extra = 1
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
+    assert!(error.contains("extra"), "unexpected error: {error}");
+
+    // Default-block typo.
+    let text = r#"
+radial = "treutler_ahlrichs"
+
+[default]
+n_rad = 20
+radial_scale = 0.9
+cuttoff = 9.0
+angular = { fixed = { n_ang = 50 } }
+"#;
+    let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
+    assert!(error.contains("cuttoff"), "unexpected error: {error}");
+
+    // The old `[elements.Z]` table form is rejected, not silently ignored.
+    let text = r#"
+radial = "treutler_ahlrichs"
+
+[default]
+n_rad = 20
+radial_scale = 0.9
+angular = { fixed = { n_ang = 50 } }
+
+[elements.8]
+n_rad = 75
+"#;
+    let error = toml::from_str::<GridPreset>(text).unwrap_err().to_string();
+    assert!(error.contains("elements"), "unexpected error: {error}");
+}
