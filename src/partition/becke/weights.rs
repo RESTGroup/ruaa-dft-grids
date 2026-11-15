@@ -194,9 +194,7 @@ fn block_becke_early(
     let (n, _nb, active_lanes) = init_lane_block(tables, grid, out, scratch);
     let nlane = scratch.nlane;
     for i in 0..n {
-        for lane in 0..active_lanes {
-            scratch.active[lane] = simd::one();
-        }
+        scratch.active[..active_lanes].fill(simd::one());
         for j in 0..i {
             let a_ab = simd::splat(tables.a_ab(i, j));
             let r_ab = simd::splat(tables.r_ab(i, j));

@@ -97,8 +97,8 @@ pub(crate) fn init_lane_block(
     let nlane = scratch.nlane;
     let active_lanes = nb.div_ceil(simd::LANES);
     debug_assert!(nb <= scratch.block);
-    for lane in 0..active_lanes {
-        scratch.coords[lane] = simd::gather_coords(grid, lane);
+    for (lane, coord) in scratch.coords.iter_mut().take(active_lanes).enumerate() {
+        *coord = simd::gather_coords(grid, lane);
     }
     for k in 0..n {
         let c = tables.center(k);

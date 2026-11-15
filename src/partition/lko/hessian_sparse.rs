@@ -373,10 +373,7 @@ pub(crate) fn point_hessian(
             scratch.p[j] *= 0.5 * (1.0 + f);
         }
     }
-    let mut z = 0.0;
-    for k in 0..n {
-        z += scratch.p[k];
-    }
+    let z: f64 = scratch.p[..n].iter().sum();
     if z.abs() <= INVTOL {
         scratch.out.fill(0.0);
         if let Some(grad) = grad {

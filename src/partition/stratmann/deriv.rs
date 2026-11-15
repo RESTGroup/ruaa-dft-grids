@@ -693,8 +693,8 @@ fn hessian_point<S: SsSwitch>(
         scratch.sup_start.push(start);
         let mut gs = [0.0; 3];
         if need_full {
-            for a in start..end {
-                for (g, v) in gs.iter_mut().zip(scratch.sup_vals[a]) {
+            for row in &scratch.sup_vals[start..end] {
+                for (g, v) in gs.iter_mut().zip(row) {
                     *g += v;
                 }
             }

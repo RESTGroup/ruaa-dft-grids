@@ -245,9 +245,7 @@ pub(crate) fn block_hessian(
     }
 
     // --- running products (pass 1) --- //
-    for k in 0..n {
-        scratch.p[k] = simd::one();
-    }
+    scratch.p[..n].fill(simd::one());
     for i in 0..n {
         for j in 0..i {
             let a_ab = simd::splat(tables.a_ab(i, j));
@@ -265,10 +263,11 @@ pub(crate) fn block_hessian(
             scratch.p[j] *= sj;
         }
     }
-    let mut z = simd::zero();
-    for k in 0..n {
-        z += scratch.p[k];
-    }
+    let z = scratch
+        .p
+        .iter()
+        .take(n)
+        .fold(simd::zero(), |acc, &value| acc + value);
     let small = simd::abs_le(z, INVTOL);
     let inv_z = simd::one() / z;
     let pg = attrib.select_product(&scratch.p);
